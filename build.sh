@@ -4,6 +4,7 @@ set -euo pipefail
 configuration="Debug"
 launch=false
 restore=false
+clean=false
 verbosity="minimal"
 
 while [[ $# -gt 0 ]]; do
@@ -11,16 +12,24 @@ while [[ $# -gt 0 ]]; do
         -c|--configuration) configuration="$2"; shift 2 ;;
         -l|--launch)        launch=true; shift ;;
         -r|--restore)       restore=true; shift ;;
+        -x|--clean)         clean=true; shift ;;
         -v|--verbosity)     verbosity="$2"; shift 2 ;;
         *)
             echo "Unknown option: $1" >&2
-            echo "Usage: build.sh [-c|--configuration <config>] [-l|--launch] [-r|--restore] [-v|--verbosity <level>]" >&2
+            echo "Usage: build.sh [-c|--configuration <config>] [-l|--launch] [-r|--restore] [-x|--clean] [-v|--verbosity <level>]" >&2
             exit 1
             ;;
     esac
 done
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if $clean; then
+    echo "Cleaning..."
+    dotnet clean "$script_dir/GenMate.PluginInstaller.csproj" \
+        --configuration "$configuration" \
+        --verbosity quiet
+fi
 
 if $restore; then
     echo "Restoring packages..."

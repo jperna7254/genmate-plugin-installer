@@ -2,29 +2,172 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:GenMate.PluginInstaller.Converters"
+        Icon="Resources/genmate-icon-black.ico"
         Title="GenMate Plugin Installer"
-        Height="450" Width="600"
+        Height="600" Width="450"
+        ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         FontFamily="{StaticResource Montserrat}"
         Background="{DynamicResource MaterialDesign.Brush.Background}">
 
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <materialDesign:PackIcon Kind="RocketLaunch"
-                                     Width="64" Height="64"
-                                     HorizontalAlignment="Center"
-                                     Foreground="{StaticResource PrimaryBrush}" />
+    <Window.Resources>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+        <converters:BoolToIconKindConverter x:Key="BoolToIconKind" />
+        <converters:InstalledStatusBrushConverter x:Key="InstalledStatusBrush" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,24">
+            <Path Data="M35.86,24.99h14.76l-4.32,21.75c-5.33,3.82-12.46,5.98-20.45,5.98C10.23,52.71,0,43.56,0,30.17,0,12.46,13.18,0,32.4,0c10.58,0,18.15,3.38,22.9,9.87l-12.17,9.43c-3.24-4.18-6.77-5.54-11.52-5.54-8.86,0-14.47,6.34-14.47,15.34,0,5.9,4.1,9.86,11.09,9.86,1.66,0,3.31-.22,4.97-.72l2.66-13.25Z"
+                  Fill="Black"
+                  Width="48" Height="48"
+                  Stretch="Uniform"
+                  HorizontalAlignment="Center" />
             <TextBlock Text="GenMate Plugin Installer"
-                       FontSize="24"
+                       FontSize="20"
                        FontWeight="SemiBold"
                        Foreground="{StaticResource PrimaryBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,16,0,8" />
-            <TextBlock Text="Hello World"
-                       FontSize="16"
-                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
-                       HorizontalAlignment="Center" />
+                       Margin="0,12,0,4" />
         </StackPanel>
-    </Grid>
 
+        <!-- Installed Version Section -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <TextBlock Text="INSTALLED VERSION"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                       Margin="0,0,0,8" />
+
+            <materialDesign:Card Style="{StaticResource DenseCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <materialDesign:PackIcon Grid.Column="0"
+                                             Kind="{Binding IsPluginInstalled, Converter={StaticResource BoolToIconKind}}"
+                                             Width="24" Height="24"
+                                             VerticalAlignment="Center"
+                                             Foreground="{Binding IsPluginInstalled, Converter={StaticResource InstalledStatusBrush}}" />
+
+                    <!-- Installed state -->
+                    <TextBlock Grid.Column="1"
+                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0"
+                               FontSize="15"
+                               FontWeight="Medium">
+                        <Run Text="v" /><Run Text="{Binding InstalledVersion, Mode=OneWay}" />
+                    </TextBlock>
+
+                    <!-- Not installed state -->
+                    <TextBlock Grid.Column="1"
+                               Text="Not Installed"
+                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource InverseBoolToVisibility}}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0"
+                               FontSize="15"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}" />
+
+                    <Button Grid.Column="2"
+                            Content="Uninstall"
+                            Style="{StaticResource ErrorButton}"
+                            Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
+                            Click="Uninstall_Click"
+                            VerticalAlignment="Center" />
+                </Grid>
+            </materialDesign:Card>
+        </StackPanel>
+
+        <!-- Available Versions Section -->
+        <DockPanel Grid.Row="2">
+            <TextBlock DockPanel.Dock="Top"
+                       Text="AVAILABLE VERSIONS"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                       Margin="0,0,0,8" />
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding AvailableVersions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <materialDesign:Card Style="{StaticResource DenseCard}" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Version number -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                               FontSize="14" FontWeight="Medium">
+                                        <Run Text="v" /><Run Text="{Binding Version, Mode=OneWay}" />
+                                    </TextBlock>
+
+                                    <!-- Release date -->
+                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                               Text="{Binding ReleaseDate, StringFormat='{}{0:yyyy-MM-dd}'}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                               VerticalAlignment="Center" />
+
+                                    <!-- Description -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                               Text="{Binding Description}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                               Margin="0,4,0,0" />
+
+                                    <!-- Install button (when not installed) -->
+                                    <Button Grid.Row="1" Grid.Column="1"
+                                            Content="Install"
+                                            Style="{StaticResource SuccessButton}"
+                                            Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVisibility}}"
+                                            Click="Install_Click"
+                                            VerticalAlignment="Center"
+                                            Margin="8,4,0,0" />
+
+                                    <!-- Installed label (when installed) -->
+                                    <StackPanel Grid.Row="1" Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"
+                                                VerticalAlignment="Center"
+                                                Margin="8,4,0,0">
+                                        <materialDesign:PackIcon Kind="CheckCircle"
+                                                                 Width="16" Height="16"
+                                                                 Foreground="{StaticResource SuccessBrush}"
+                                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="Installed"
+                                                   FontSize="12"
+                                                   FontWeight="Medium"
+                                                   Foreground="{StaticResource SuccessBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="4,0,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </materialDesign:Card>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
 </Window>

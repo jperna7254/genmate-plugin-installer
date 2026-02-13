@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Resource Include="Resources/Fonts/*.ttf" />
+    <Resource Include="Resources/genmate-icon-black.ico" />
   </ItemGroup>
 
 </Project>
