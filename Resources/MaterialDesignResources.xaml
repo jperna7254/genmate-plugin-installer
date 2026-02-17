@@ -15,6 +15,7 @@
     <SolidColorBrush x:Key="SuccessBrush" Color="#00C853" />
     <SolidColorBrush x:Key="WarningBrush" Color="#FF9800" />
     <SolidColorBrush x:Key="ErrorBrush" Color="#F44336" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#9E9E9E" />
 
     <!-- Tooltip Style: Montserrat font -->
     <Style TargetType="ToolTip" BasedOn="{StaticResource MaterialDesignToolTip}">

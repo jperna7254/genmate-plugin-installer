@@ -15,6 +15,7 @@ Development happens in WSL, but the app must launch via the **Windows** .NET run
 ./build.sh -l           # build and launch via Windows dotnet
 ./build.sh -c Release -l  # release build and launch
 ./build.sh -r           # restore packages before building
+./build.sh -x           # clean build artifacts before building
 ```
 
 The build script handles both steps: `dotnet build` in WSL, then launches via `/mnt/c/Program Files/dotnet/dotnet.exe` when `-l` is passed.
