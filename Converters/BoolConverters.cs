@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
 using MaterialDesignThemes.Wpf;
 
 namespace GenMate.PluginInstaller.Converters;
@@ -34,12 +33,10 @@ public class BoolToIconKindConverter : IValueConverter
 
 public class InstalledStatusBrushConverter : IValueConverter
 {
-    private static readonly SolidColorBrush SuccessBrush = new(Color.FromRgb(0x00, 0xC8, 0x53));
-    private static readonly SolidColorBrush GreyBrush = new(Color.FromRgb(0x9E, 0x9E, 0x9E));
-
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value is true ? SuccessBrush : GreyBrush;
+        var key = value is true ? "SuccessBrush" : "MutedBrush";
+        return Application.Current.Resources[key];
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
