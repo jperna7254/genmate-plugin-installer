@@ -18,11 +18,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow()
     {
         _detectionService = new PluginDetectionService();
-        _versionService = new HardcodedVersionService();
+        _versionService = new GitHubReleaseService();
 
         InitializeComponent();
         DataContext = this;
-        LoadData();
+        Loaded += async (_, _) => await LoadDataAsync();
     }
 
     public string? InstalledVersion
@@ -43,12 +43,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         set { _availableVersions = value; OnPropertyChanged(); }
     }
 
-    private void LoadData()
+    private async Task LoadDataAsync()
     {
         InstalledVersion = _detectionService.GetInstalledVersion();
         IsPluginInstalled = InstalledVersion is not null;
 
-        var versions = _versionService.GetAvailableVersions();
+        var versions = await _versionService.GetAvailableVersionsAsync();
         foreach (var version in versions)
             version.IsInstalled = version.Version == InstalledVersion;
 

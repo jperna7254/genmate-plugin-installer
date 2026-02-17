@@ -4,5 +4,5 @@ namespace GenMate.PluginInstaller.Services;
 
 public interface IVersionService
 {
-    List<PluginVersionInfo> GetAvailableVersions();
+    Task<List<PluginVersionInfo>> GetAvailableVersionsAsync();
 }
