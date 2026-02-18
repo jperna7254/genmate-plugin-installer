@@ -26,6 +26,10 @@ dotnet build GenMate.PluginInstaller.csproj
 "/mnt/c/Program Files/dotnet/dotnet.exe" bin/Debug/net10.0-windows/GenMate.PluginInstaller.dll
 ```
 
+## Architecture Notes
+
+- **No DI container** — services are instantiated directly with `new` in `MainWindow` for simplicity. If the app grows more complex, reevaluate and consider introducing a DI container.
+
 ## UI Framework & Theming
 
 - **MaterialDesignThemes** (Material Design In XAML Toolkit) for WPF controls and theming

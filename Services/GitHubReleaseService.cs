@@ -49,7 +49,7 @@ public class GitHubReleaseService : IVersionService
         public required string TagName { get; init; }
 
         [JsonPropertyName("published_at")]
-        public DateTime PublishedAt { get; init; }
+        public DateTimeOffset PublishedAt { get; init; }
 
         [JsonPropertyName("body")]
         public string? Body { get; init; }
