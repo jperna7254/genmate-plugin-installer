@@ -15,6 +15,7 @@ Development happens in WSL, but the app must launch via the **Windows** .NET run
 ./build.sh -l           # build and launch via Windows dotnet
 ./build.sh -c Release -l  # release build and launch
 ./build.sh -r           # restore packages before building
+./build.sh -x           # clean build artifacts before building
 ```
 
 The build script handles both steps: `dotnet build` in WSL, then launches via `/mnt/c/Program Files/dotnet/dotnet.exe` when `-l` is passed.
@@ -24,6 +25,10 @@ Manual equivalent:
 dotnet build GenMate.PluginInstaller.csproj
 "/mnt/c/Program Files/dotnet/dotnet.exe" bin/Debug/net10.0-windows/GenMate.PluginInstaller.dll
 ```
+
+## Architecture Notes
+
+- **No DI container** — services are instantiated directly with `new` in `MainWindow` for simplicity. If the app grows more complex, reevaluate and consider introducing a DI container.
 
 ## UI Framework & Theming
 

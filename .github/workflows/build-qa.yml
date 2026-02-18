@@ -1,0 +1,31 @@
+name: Build QA
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  build-qa:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        include-prerelease: true
+
+    - name: Restore packages
+      run: dotnet restore GenMate.PluginInstaller.csproj
+
+    - name: Publish
+      run: dotnet publish GenMate.PluginInstaller.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GenMate.PluginInstaller-qa
+        path: bin/Release/net10.0-windows/win-x64/publish/GenMate.PluginInstaller.exe
+        retention-days: 30
