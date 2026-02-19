@@ -68,12 +68,13 @@ public class PluginInstallService : IPluginInstallService
 
     public Task UninstallAsync()
     {
-        if (Directory.Exists(BundlePath))
-            Directory.Delete(BundlePath, true);
+        return Task.Run(() =>
+        {
+            if (Directory.Exists(BundlePath))
+                Directory.Delete(BundlePath, true);
 
-        if (Directory.Exists(LocalAppDataGenMate))
-            Directory.Delete(LocalAppDataGenMate, true);
-
-        return Task.CompletedTask;
+            if (Directory.Exists(LocalAppDataGenMate))
+                Directory.Delete(LocalAppDataGenMate, true);
+        });
     }
 }
