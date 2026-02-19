@@ -23,6 +23,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Header -->
@@ -86,6 +87,7 @@
                             Content="Uninstall"
                             Style="{StaticResource ErrorButton}"
                             Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
+                            IsEnabled="{Binding IsNotBusy}"
                             Click="Uninstall_Click"
                             VerticalAlignment="Center" />
                 </Grid>
@@ -141,6 +143,7 @@
                                             Content="Install"
                                             Style="{StaticResource SuccessButton}"
                                             Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVisibility}}"
+                                            IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=Window}}"
                                             Click="Install_Click"
                                             VerticalAlignment="Center"
                                             Margin="8,4,0,0" />
@@ -169,5 +172,18 @@
                 </ItemsControl>
             </ScrollViewer>
         </DockPanel>
+
+        <!-- Status / Progress Panel -->
+        <StackPanel Grid.Row="3" Margin="0,12,0,0"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <ProgressBar Value="{Binding DownloadProgress}"
+                         Minimum="0" Maximum="100"
+                         Height="6"
+                         Margin="0,0,0,8" />
+            <TextBlock Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                       HorizontalAlignment="Center" />
+        </StackPanel>
     </Grid>
 </Window>

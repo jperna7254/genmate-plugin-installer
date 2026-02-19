@@ -32,7 +32,10 @@ public class GitHubReleaseService : IVersionService
                 {
                     Version = r.TagName.TrimStart('v'),
                     ReleaseDate = r.PublishedAt,
-                    Description = r.Body ?? string.Empty
+                    Description = r.Body ?? string.Empty,
+                    DownloadUrl = r.Assets
+                        ?.FirstOrDefault(a => a.Name.StartsWith("GenMate.bundle-") && a.Name.EndsWith(".zip"))
+                        ?.BrowserDownloadUrl
                 })
                 .OrderByDescending(v => v.ReleaseDate)
                 .ToList();
@@ -59,5 +62,17 @@ public class GitHubReleaseService : IVersionService
 
         [JsonPropertyName("prerelease")]
         public bool Prerelease { get; init; }
+
+        [JsonPropertyName("assets")]
+        public List<GitHubAsset>? Assets { get; init; }
+    }
+
+    private class GitHubAsset
+    {
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("browser_download_url")]
+        public required string BrowserDownloadUrl { get; init; }
     }
 }
