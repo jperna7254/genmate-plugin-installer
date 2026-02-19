@@ -174,6 +174,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
 
         IsBusy = true;
+        DownloadProgress = 0;
         StatusMessage = "Uninstalling...";
 
         try

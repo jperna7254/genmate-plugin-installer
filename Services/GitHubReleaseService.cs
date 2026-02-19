@@ -32,7 +32,6 @@ public class GitHubReleaseService : IVersionService
                 {
                     Version = r.TagName.TrimStart('v'),
                     ReleaseDate = r.PublishedAt,
-                    Description = r.Body ?? string.Empty,
                     DownloadUrl = r.Assets
                         ?.FirstOrDefault(a => a.Name.StartsWith("GenMate.bundle-") && a.Name.EndsWith(".zip"))
                         ?.BrowserDownloadUrl
@@ -53,9 +52,6 @@ public class GitHubReleaseService : IVersionService
 
         [JsonPropertyName("published_at")]
         public DateTimeOffset PublishedAt { get; init; }
-
-        [JsonPropertyName("body")]
-        public string? Body { get; init; }
 
         [JsonPropertyName("draft")]
         public bool Draft { get; init; }
