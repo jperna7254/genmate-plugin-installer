@@ -1,0 +1,59 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        include-prerelease: true
+
+    - name: Read version
+      id: version
+      shell: pwsh
+      run: |
+        [xml]$csproj = Get-Content GenMate.PluginInstaller.csproj
+        $version = $csproj.Project.PropertyGroup.Version | Where-Object { $_ }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+    - name: Check if release exists
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="v${{ steps.version.outputs.VERSION }}"
+        if gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --silent > /dev/null 2>&1; then
+          echo "EXISTS=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::Tag $tag already exists - skipping release. Bump Version in csproj to create a new release."
+        else
+          echo "EXISTS=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Restore packages
+      if: steps.check.outputs.EXISTS == 'false'
+      run: dotnet restore GenMate.PluginInstaller.csproj
+
+    - name: Publish
+      if: steps.check.outputs.EXISTS == 'false'
+      run: dotnet publish GenMate.PluginInstaller.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+    - name: Create GitHub Release
+      if: steps.check.outputs.EXISTS == 'false'
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        name: GenMate Plugin Installer v${{ steps.version.outputs.VERSION }}
+        files: bin/Release/net10.0-windows/win-x64/publish/GenMate.PluginInstaller.exe
+        generate_release_notes: true
