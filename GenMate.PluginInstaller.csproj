@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Version>1.0.1</Version>
+    <AssemblyTitle>GenMate Plugin Installer</AssemblyTitle>
+    <Product>GenMate Plugin Installer</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Resources/genmate-installer-icon.ico</ApplicationIcon>
   </PropertyGroup>
