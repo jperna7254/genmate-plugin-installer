@@ -9,6 +9,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Version>1.0.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources/genmate-installer-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
 
   <ItemGroup>
     <Resource Include="Resources/Fonts/*.ttf" />
-    <Resource Include="Resources/genmate-icon-black.ico" />
+    <Resource Include="Resources/genmate-installer-icon.ico" />
   </ItemGroup>
 
 </Project>
