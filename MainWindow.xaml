@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:converters="clr-namespace:GenMate.PluginInstaller.Converters"
-        Icon="Resources/genmate-icon-black.ico"
+        Icon="Resources/genmate-installer-icon.ico"
         Title="GenMate Plugin Installer"
         Height="600" Width="450"
         ResizeMode="CanMinimize"
