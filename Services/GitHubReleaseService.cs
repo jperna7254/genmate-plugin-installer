@@ -14,7 +14,11 @@ namespace GenMate.PluginInstaller.Services;
 //     (a release without one shows up in the list with no download and cannot be installed);
 //   - that zip must contain a "GenMate.bundle/" root folder (see PluginInstallService), whose
 //     PackageContents.xml carries the installed version in its AppVersion attribute
-//     (see PluginDetectionService).
+//     (see PluginDetectionService);
+//   - that AppVersion value must equal the tag with its leading "v" removed, character for
+//     character, because MainWindow.LoadDataAsync compares the two with exact string equality.
+//     A "v1.2.3" tag shipping AppVersion="1.2.3.0" satisfies every clause above and installs
+//     fine, yet the app then reports 1.2.3.0 installed while offering 1.2.3 as if it were not.
 // Changing any of those names or shapes requires a matching change here first.
 public class GitHubReleaseService : IVersionService
 {
