@@ -45,3 +45,17 @@ Defined in `MaterialDesignResources.xaml` and used via `Style="{StaticResource .
 - `IconButton` — circular icon button (32x32)
 - `ClickableCardButton` — card that acts as a button with hover effects
 - `DenseCard` — flat card with black outline, no elevation
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage labels, used as-is: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at the repo root plus `docs/adr/`. See `docs/agents/domain.md`.
