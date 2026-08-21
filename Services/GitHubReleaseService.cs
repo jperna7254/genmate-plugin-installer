@@ -19,7 +19,10 @@ namespace GenMate.PluginInstaller.Services;
 //     character, because MainWindow.LoadDataAsync compares the two with exact string equality.
 //     A "v1.2.3" tag shipping AppVersion="1.2.3.0" satisfies every clause above and installs
 //     fine, yet the app then reports 1.2.3.0 installed while offering 1.2.3 as if it were not.
-// Changing any of those names or shapes requires a matching change here first.
+// Updating this file first does not protect existing installs: there is no self-update path, so a
+// copy downloaded months ago still expects the old names, and a rename leaves it with no download
+// for any release. Change these additively instead - match the old asset prefix as well as the new,
+// keep the old tag shape parseable - and drop the old form only once no fielded installer matters.
 public class GitHubReleaseService : IVersionService
 {
     private const string ReleasesUrl = "https://api.github.com/repos/jperna7254/genmate-plugin-releases/releases";
