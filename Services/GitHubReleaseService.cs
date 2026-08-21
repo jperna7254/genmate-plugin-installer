@@ -5,6 +5,24 @@ using GenMate.PluginInstaller.Models;
 
 namespace GenMate.PluginInstaller.Services;
 
+// Cross-repo contract with jperna7254/genmate-plugin-releases. That repo publishes the
+// releases this installer consumes, and none of the following is visible there, so a
+// change made there silently breaks every installed copy of this app in the field:
+//   - the release tag must be "v{version}" (the leading "v" is trimmed below);
+//   - the release must be published, not a draft and not a prerelease, or it is filtered out;
+//   - it must carry an asset whose name starts with "GenMate.bundle-" and ends with ".zip"
+//     (a release without one shows up in the list with no download and cannot be installed);
+//   - that zip must contain a "GenMate.bundle/" root folder (see PluginInstallService), whose
+//     PackageContents.xml carries the installed version in its AppVersion attribute
+//     (see PluginDetectionService);
+//   - that AppVersion value must equal the tag with its leading "v" removed, character for
+//     character, because MainWindow.LoadDataAsync compares the two with exact string equality.
+//     A "v1.2.3" tag shipping AppVersion="1.2.3.0" satisfies every clause above and installs
+//     fine, yet the app then reports 1.2.3.0 installed while offering 1.2.3 as if it were not.
+// Updating this file first does not protect existing installs: there is no self-update path, so a
+// copy downloaded months ago still expects the old names, and a rename leaves it with no download
+// for any release. Change these additively instead - match the old asset prefix as well as the new,
+// keep the old tag shape parseable - and drop the old form only once no fielded installer matters.
 public class GitHubReleaseService : IVersionService
 {
     private const string ReleasesUrl = "https://api.github.com/repos/jperna7254/genmate-plugin-releases/releases";

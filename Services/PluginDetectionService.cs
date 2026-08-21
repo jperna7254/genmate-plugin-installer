@@ -16,6 +16,7 @@ public class PluginDetectionService : IPluginDetectionService
                 return null;
 
             var doc = XDocument.Load(BundlePath);
+            // AppVersion on the PackageContents.xml root is fixed by the cross-repo contract on GitHubReleaseService.
             return doc.Root?.Attribute("AppVersion")?.Value;
         }
         catch

@@ -55,7 +55,7 @@ public class PluginInstallService : IPluginInstallService
             if (Directory.Exists(LocalAppDataGenMate))
                 Directory.Delete(LocalAppDataGenMate, true);
 
-            // Extract zip (contains GenMate.bundle/ root folder)
+            // Extract zip; its "GenMate.bundle/" root folder is fixed by the cross-repo contract on GitHubReleaseService.
             Directory.CreateDirectory(ApplicationPluginsPath);
             ZipFile.ExtractToDirectory(tempFile, ApplicationPluginsPath, true);
         }

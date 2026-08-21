@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# Build (and optionally launch) the installer.
+#
+# Development happens in WSL, but this is a WPF app: it builds under the WSL SDK and can only
+# *run* under the Windows .NET desktop runtime. `dotnet run` from WSL will not work - use
+# `-l` here, which builds in WSL and then launches the produced dll via Windows dotnet.exe.
 set -euo pipefail
 
 configuration="Debug"

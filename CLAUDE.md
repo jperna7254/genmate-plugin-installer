@@ -2,60 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## What this is
 
-GenMate.PluginInstaller is a WPF (.NET 10) desktop app that installs the GenMate AutoCAD plugin. It is part of the larger GenMate ecosystem (see parent `GenMate/CLAUDE.md` for full architecture).
+GenMate.PluginInstaller is a desktop app that installs the GenMate AutoCAD plugin. It is part of the larger GenMate ecosystem (see parent `GenMate/CLAUDE.md` for full architecture).
 
 ## Build & Run
 
-Development happens in WSL, but the app must launch via the **Windows** .NET runtime (WPF requires the Windows desktop runtime).
-
-```bash
-./build.sh              # build only (Debug)
-./build.sh -l           # build and launch via Windows dotnet
-./build.sh -c Release -l  # release build and launch
-./build.sh -r           # restore packages before building
-./build.sh -x           # clean build artifacts before building
-```
-
-The build script handles both steps: `dotnet build` in WSL, then launches via `/mnt/c/Program Files/dotnet/dotnet.exe` when `-l` is passed.
-
-Manual equivalent:
-```bash
-dotnet build GenMate.PluginInstaller.csproj
-"/mnt/c/Program Files/dotnet/dotnet.exe" bin/Debug/net10.0-windows/GenMate.PluginInstaller.dll
-```
+Build and launch with `./build.sh` — see the header comment and flag parsing in that script. Do not use `dotnet run`: the build runs under WSL but the app can only launch under the Windows .NET desktop runtime, which `build.sh -l` handles.
 
 ## Architecture Notes
 
 - **No DI container** — services are instantiated directly with `new` in `MainWindow` for simplicity. If the app grows more complex, reevaluate and consider introducing a DI container.
 
-## UI Framework & Theming
-
-- **MaterialDesignThemes** (Material Design In XAML Toolkit) for WPF controls and theming
-- Theme: Light base, DeepPurple primary, Amber secondary
-- **Montserrat** font family bundled in `Resources/Fonts/`, used globally
-- Color palette mirrors the GenMate WebApp's MudBlazor colors (e.g. `PrimaryBrush` = `#594AE2`)
-- Global styles defined in `Resources/MaterialDesignResources.xaml` — all buttons default to outlined primary style
-
-### Available Custom Styles
-
-Defined in `MaterialDesignResources.xaml` and used via `Style="{StaticResource ...}"`:
-- `SuccessButton`, `WarningButton`, `ErrorButton` — colored outlined button variants
-- `IconButton` — circular icon button (32x32)
-- `ClickableCardButton` — card that acts as a button with hover effects
-- `DenseCard` — flat card with black outline, no elevation
-
 ## Agent skills
 
-### Issue tracker
+- **Issue tracker** — `docs/agents/issue-tracker.md`
+- **Triage labels** — `docs/agents/triage-labels.md`
+- **Domain docs** — `docs/agents/domain.md`
 
-Issues live in this repo's GitHub Issues, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+## Maintaining this file
 
-### Triage labels
+When you pin a rule with a test or state it in a code comment, delete the prose that said it. A block that names a test is a block whose job is done.
 
-The five canonical triage labels, used as-is: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+**Write only what the code cannot say.** Before adding a block, ask whether an agent could learn it from the code it would naturally open. If it could, do not write it. If a rule binds at a call site, put it in a comment there or in a test that fails when it is broken, and not here. What belongs here is what has no point of change: something built and then deliberately removed, an accepted loss or a deliberate one-way migration, a rejected alternative and its reason, or a contract that is invisible in the repo where it gets violated. When unsure whether a block is one of those, keep it. Do not add a repository overview, directory tree, technology list, file inventory, command list, or service roster. They go stale silently and the tooling answers them accurately.
 
-### Domain docs
-
-Single-context: one `CONTEXT.md` at the repo root plus `docs/adr/`. See `docs/agents/domain.md`.
+`document.instructions` in `.no-mistakes.yaml` is the authoritative copy of the policy above: it is the trusted default-branch-only channel fed directly to the validation pipeline's Document step, and it cannot be changed from a feature branch. The paragraph here is a summary of it for every agent working in this repo, the Document step included. If the yaml changes, update this summary to match it.
