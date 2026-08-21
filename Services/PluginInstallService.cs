@@ -25,7 +25,6 @@ public class PluginInstallService : IPluginInstallService
         string? tempFile = null;
         try
         {
-            // Download zip to temp file with progress
             tempFile = Path.GetTempFileName();
             using var response = await HttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
             response.EnsureSuccessStatusCode();
@@ -47,15 +46,13 @@ public class PluginInstallService : IPluginInstallService
 
             fileStream.Close();
 
-            // Remove existing bundle
             if (Directory.Exists(BundlePath))
                 Directory.Delete(BundlePath, true);
 
-            // Clean local app data
             if (Directory.Exists(LocalAppDataGenMate))
                 Directory.Delete(LocalAppDataGenMate, true);
 
-            // Extract zip; its "GenMate.bundle/" root folder is fixed by the cross-repo contract on GitHubReleaseService.
+            // The zip's "GenMate.bundle/" root folder is fixed by the cross-repo contract on GitHubReleaseService.
             Directory.CreateDirectory(ApplicationPluginsPath);
             ZipFile.ExtractToDirectory(tempFile, ApplicationPluginsPath, true);
         }

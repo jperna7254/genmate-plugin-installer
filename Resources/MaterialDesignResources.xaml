@@ -7,7 +7,6 @@
         <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Montserrat Font Family -->
     <FontFamily x:Key="Montserrat">pack://application:,,,/GenMate.PluginInstaller;component/Resources/Fonts/#Montserrat</FontFamily>
 
     <!-- MudBlazor Color Palette: these values mirror the GenMate WebApp's MudBlazor theme so the
@@ -18,12 +17,10 @@
     <SolidColorBrush x:Key="ErrorBrush" Color="#F44336" />
     <SolidColorBrush x:Key="MutedBrush" Color="#9E9E9E" />
 
-    <!-- Tooltip Style: Montserrat font -->
     <Style TargetType="ToolTip" BasedOn="{StaticResource MaterialDesignToolTip}">
         <Setter Property="FontFamily" Value="{StaticResource Montserrat}" />
     </Style>
 
-    <!-- Dense Card Style: Flat with black outline -->
     <Style x:Key="DenseCard" TargetType="materialDesign:Card" BasedOn="{StaticResource {x:Type materialDesign:Card}}">
         <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp0" />
         <Setter Property="UniformCornerRadius" Value="4" />
@@ -33,7 +30,6 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <!-- Base Button Style: Primary color (default for all buttons) -->
     <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
         <Setter Property="FontFamily" Value="{StaticResource Montserrat}" />
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
@@ -47,32 +43,28 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <!-- Success Button Style -->
     <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
     </Style>
 
-    <!-- Warning Button Style -->
     <Style x:Key="WarningButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}" />
     </Style>
 
-    <!-- Error Button Style -->
     <Style x:Key="ErrorButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
     </Style>
 
-    <!-- Icon Button Style: Circular hover background -->
+    <!-- The circular hover background is inherited from MaterialDesignIconButton in the MaterialDesignThemes package; nothing here sets it. -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="32" />
     </Style>
 
-    <!-- Clickable Card Button Style: Card that acts as a button -->
     <Style x:Key="ClickableCardButton" TargetType="Button">
         <Setter Property="Background" Value="White" />
         <Setter Property="BorderBrush" Value="Black" />
