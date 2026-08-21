@@ -10,7 +10,8 @@
     <!-- Montserrat Font Family -->
     <FontFamily x:Key="Montserrat">pack://application:,,,/GenMate.PluginInstaller;component/Resources/Fonts/#Montserrat</FontFamily>
 
-    <!-- MudBlazor Color Palette -->
+    <!-- MudBlazor Color Palette: these values mirror the GenMate WebApp's MudBlazor theme so the
+         installer looks like the rest of the product. Change them only to track a WebApp change. -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="#594AE2" />
     <SolidColorBrush x:Key="SuccessBrush" Color="#00C853" />
     <SolidColorBrush x:Key="WarningBrush" Color="#FF9800" />

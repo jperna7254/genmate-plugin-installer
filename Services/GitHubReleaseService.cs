@@ -5,6 +5,17 @@ using GenMate.PluginInstaller.Models;
 
 namespace GenMate.PluginInstaller.Services;
 
+// Cross-repo contract with jperna7254/genmate-plugin-releases. That repo publishes the
+// releases this installer consumes, and none of the following is visible there, so a
+// change made there silently breaks every installed copy of this app in the field:
+//   - the release tag must be "v{version}" (the leading "v" is trimmed below);
+//   - the release must be published, not a draft and not a prerelease, or it is filtered out;
+//   - it must carry an asset whose name starts with "GenMate.bundle-" and ends with ".zip"
+//     (a release without one shows up in the list with no download and cannot be installed);
+//   - that zip must contain a "GenMate.bundle/" root folder (see PluginInstallService), whose
+//     PackageContents.xml carries the installed version in its AppVersion attribute
+//     (see PluginDetectionService).
+// Changing any of those names or shapes requires a matching change here first.
 public class GitHubReleaseService : IVersionService
 {
     private const string ReleasesUrl = "https://api.github.com/repos/jperna7254/genmate-plugin-releases/releases";
