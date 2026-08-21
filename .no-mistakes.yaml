@@ -13,6 +13,26 @@ document:
     is not derivable and is not yet stated in the code, put it in the code at its
     point of change rather than adding a second prose copy.
 
+    Code comments are documentation and get the same test. A comment that restates the
+    line below it, repeats the member's own name, narrates the steps, or explains
+    standard language or framework semantics fails the test and should not be written.
+    A comment whose rule is already pinned by a test should say so in one clause and
+    stop, rather than restating the rule.
+
+    What a comment may carry is what the surrounding code cannot: why this way rather
+    than the obvious alternative, a consequence that lands in another file or another
+    repository, something built and then deliberately removed, a warning that something
+    which looks removable is load-bearing, an external constraint such as a library bug
+    or platform behaviour, or a unit or invariant the type cannot express. Prefer
+    shortening a comment to its load-bearing clause over deleting it, and when unsure
+    whether a comment is protected, keep it.
+
+    Doc comments that are compiled into a published package, or that drive tooling for
+    consumers outside this repository, are a product artifact rather than notes about
+    the code, and this test does not apply to them. Neither does it apply to comments a
+    tool reads: pragmas, analyzer suppressions, generated-code markers, and licence
+    headers.
+
     Never state a fact in two places. If this change made a documented fact stale,
     update its single owner; if the code now states it, delete the prose.
 
