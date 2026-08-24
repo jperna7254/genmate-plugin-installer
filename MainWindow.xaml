@@ -24,6 +24,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,24">
@@ -165,5 +166,13 @@
                        Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
                        HorizontalAlignment="Center" />
         </StackPanel>
+
+        <TextBlock Grid.Row="4"
+                   HorizontalAlignment="Center"
+                   Margin="0,12,0,0"
+                   FontSize="12"
+                   Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}">
+            <Run Text="v" /><Run Text="{Binding RunningVersion, Mode=OneWay}" />
+        </TextBlock>
     </Grid>
 </Window>
