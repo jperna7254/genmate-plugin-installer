@@ -68,6 +68,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Loaded += async (_, _) => await StartAsync();
     }
 
+    // Three parts rather than Version's four, so the label reads as the release tag on GitHub.
+    public string RunningVersion { get; } =
+        (Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0)).ToString(3);
+
     public string? InstalledVersion
     {
         get => _installedVersion;
