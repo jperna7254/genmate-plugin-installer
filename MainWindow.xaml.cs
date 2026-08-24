@@ -13,8 +13,16 @@ namespace GenMate.PluginInstaller;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
+    // Every request made through this client is already bounded by its own linked
+    // CancellationTokenSource - ChannelDocumentReader's 10s fetch, the update check's 15s, the
+    // download's 20 minutes. Those budgets were each chosen for what the user is waiting on, and an
+    // infinite client timeout leaves them the single visible answer to how long anything may take,
+    // rather than sharing that answer with a default whose interaction with a streamed body read is
+    // subtle enough that two readings of it have disagreed. Anything added here must bring its own
+    // token; a request without one would wait forever.
     private static readonly HttpClient UpdateHttpClient = new()
     {
+        Timeout = Timeout.InfiniteTimeSpan,
         DefaultRequestHeaders =
         {
             { "User-Agent", "GenMate-PluginInstaller" },

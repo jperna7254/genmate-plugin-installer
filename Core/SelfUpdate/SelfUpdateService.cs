@@ -184,8 +184,7 @@ public sealed class SelfUpdateService
         if (lastApplied is null)
             return false;
 
-        var applied = ReleaseVersion.Normalize(lastApplied);
-        if (target != applied || _currentVersion >= applied)
+        if (target != ReleaseVersion.Normalize(lastApplied))
             return false;
 
         _log.Write(
