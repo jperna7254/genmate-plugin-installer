@@ -17,6 +17,9 @@ jobs:
         dotnet-version: '10.0.x'
         include-prerelease: true
 
+    - name: Test
+      run: dotnet test Tests/GenMate.PluginInstaller.Tests.csproj -c Release
+
     - name: Restore packages
       run: dotnet restore GenMate.PluginInstaller.csproj
 
