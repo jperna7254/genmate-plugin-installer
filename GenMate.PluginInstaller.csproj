@@ -7,15 +7,33 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <AssemblyTitle>GenMate Plugin Installer</AssemblyTitle>
     <Product>GenMate Plugin Installer</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Resources/genmate-installer-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <!-- Not PublishTrimmed: the SDK refuses it outright for WPF (NETSDK1168), so the ~145 MB
+       self-contained publish cannot be shrunk that way. Measured 2026-08-24; the lever that does
+       work here is EnableCompressionInSingleFile, at roughly half the size and a slower start. -->
+
   <ItemGroup>
     <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Core/GenMate.PluginInstaller.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Core/ and Tests/ are separate projects nested under this one, because this project sits at
+       the repository root. Without these removals the SDK's default globs would compile their
+       sources into this assembly as well as their own. -->
+  <ItemGroup>
+    <Compile Remove="Core/**;Tests/**" />
+    <None Remove="Core/**;Tests/**" />
+    <EmbeddedResource Remove="Core/**;Tests/**" />
+    <Page Remove="Core/**;Tests/**" />
   </ItemGroup>
 
   <ItemGroup>
