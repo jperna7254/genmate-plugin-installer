@@ -8,6 +8,11 @@ public sealed class LocalUpdateEnvironment : IUpdateEnvironment
 
     public LocalUpdateEnvironment(string? currentExecutablePath = null, string? lastAppliedTargetPath = null)
     {
+        // One record per user, not per copy of the exe: a second, older installer under the same
+        // account is held at its current version until a release other than the recorded target
+        // exists. Accepted on the assumption that nobody keeps two copies on one machine, and
+        // accepted knowingly - keying the record to the executable path would fix it, and was not
+        // done, because a path is not a stable identity for a file people move and re-download.
         _lastAppliedTargetPath = lastAppliedTargetPath
             ?? Path.Combine(InstallerDataDirectory.Path, "last-applied-update.txt");
 

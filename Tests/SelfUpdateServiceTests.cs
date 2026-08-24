@@ -230,6 +230,15 @@ public class SelfUpdateServiceTests
         Assert.Equal(1, releases.DownloadCalls);
         Assert.Equal([environment.CurrentExecutablePath], environment.Launched);
         Assert.True(log.Mentions("not applying it again"));
+
+        // The maintainer corrects the mis-tag with a release numbered below it. Refusing that too
+        // would leave these copies unfixable except by numbering past the bogus tag.
+        releases.Latest = Release("1.2.0");
+        var thirdLaunch = Build(environment, releases, out _);
+
+        Assert.Equal(SelfUpdateOutcome.RelaunchStarted, await thirdLaunch.TryUpdateAsync(Channel));
+        Assert.Equal(2, releases.DownloadCalls);
+        Assert.Equal(new Version(1, 2, 0, 0), environment.LastAppliedTarget);
     }
 
     [Fact]

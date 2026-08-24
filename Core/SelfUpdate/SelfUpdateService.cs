@@ -147,15 +147,24 @@ public sealed class SelfUpdateService
     }
 
     /// <summary>
-    /// Whether this exact target has already been swapped in once while this build was running.
+    /// Whether this exact target has already been swapped in and left this build still below it.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The 0.0.0.0 guard covers a build that cannot state its version at all. This covers the other
     /// way the same brick happens: a release tagged above the assembly version baked into its own
     /// asset. Every launch would then read it as newer, download 65 MB, swap, relaunch into a build
     /// that reads it as newer again, forever. Recording the target the moment a swap completes
-    /// bounds that to one attempt per published version, because the second attempt is refused
-    /// before anything is downloaded.
+    /// bounds that to one attempt, because the second attempt at the same target is refused before
+    /// anything is downloaded.
+    /// </para>
+    /// <para>
+    /// Only that exact target is refused, never everything at or below it. Treating the record as a
+    /// floor would mean a mis-tagged v9.9.9 permanently rejects the corrective v1.2.0 published
+    /// after it, silently, and self-update could only be revived by burning the version space past
+    /// the bogus tag - the remote fixability this whole feature exists to provide, lost to the
+    /// guard meant to protect it.
+    /// </para>
     /// </remarks>
     private bool HasAlreadyBeenApplied(Version target)
     {
@@ -175,8 +184,8 @@ public sealed class SelfUpdateService
         if (lastApplied is null)
             return false;
 
-        var floor = ReleaseVersion.Normalize(lastApplied);
-        if (_currentVersion >= floor || target > floor)
+        var applied = ReleaseVersion.Normalize(lastApplied);
+        if (target != applied || _currentVersion >= applied)
             return false;
 
         _log.Write(
