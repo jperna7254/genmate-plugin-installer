@@ -6,9 +6,13 @@ namespace GenMate.PluginInstaller.Tests;
 
 /// <summary>
 /// channel.json may relax presentation, never verification. It is an unsigned file fetched over
-/// HTTPS, so anyone able to substitute a release asset can probably substitute it too; what makes
-/// that acceptable is that nothing it says can make the installer trust something. These tests
-/// exist because the reversal is one line long - "let channel.json turn verification off for QA".
+/// HTTPS, so anyone able to substitute a release asset can probably substitute it too; what is to
+/// make that acceptable is that nothing it says can reach a verification decision. These tests hold
+/// the document outside verification so that the pinned check, when a certificate finally allows
+/// one, is not already undermined by the shape of the document - today
+/// <see cref="AcceptUnsignedInstallerVerifier"/> accepts every download unconditionally, by the
+/// captain's ruling, so there is no verification here yet for the document to relax. They exist
+/// because the reversal is one line long - "let channel.json turn verification off for QA".
 /// </summary>
 public class ChannelInvariantTests
 {
@@ -86,8 +90,11 @@ public class ChannelInvariantTests
         Assert.Equal("hostile-v3.1.0.zip", document.Plugin.Hosts[CadHosts.AutoCad].ResolveBundleAsset("3.1.0"));
     }
 
+    // The verifier, not the document, is what decides. Stated with a verifier that rejects, because
+    // the shipping one accepts everything until a certificate exists: what is pinned here is that a
+    // repointed asset reaches the verifier's answer and cannot route around it.
     [Fact]
-    public async Task A_repointed_installer_asset_is_still_refused_by_the_compiled_in_verifier()
+    public async Task A_repointed_installer_asset_is_refused_when_the_verifier_refuses_it()
     {
         using var environment = new FakeUpdateEnvironment();
         var releases = new FakeReleaseSource

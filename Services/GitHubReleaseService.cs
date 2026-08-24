@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using GenMate.PluginInstaller.Core.Channel;
+using GenMate.PluginInstaller.Core.SelfUpdate;
 using GenMate.PluginInstaller.Models;
 
 namespace GenMate.PluginInstaller.Services;
@@ -51,7 +52,7 @@ public class GitHubReleaseService : IVersionService
             return releases
                 .Where(r => !r.Draft && !r.Prerelease)
                 .Select(r => new { Release = r, Version = r.TagName.TrimStart('v') })
-                .Where(r => IsAtOrAboveFloor(r.Version, host.MinimumVersion))
+                .Where(r => ReleaseVersion.IsAtOrAboveFloor(r.Version, host.MinimumVersion))
                 .Select(r => new PluginVersionInfo
                 {
                     Version = r.Version,
@@ -79,9 +80,6 @@ public class GitHubReleaseService : IVersionService
                    a.Name.StartsWith("GenMate.bundle-", StringComparison.Ordinal) &&
                    a.Name.EndsWith(".zip", StringComparison.Ordinal));
     }
-
-    private static bool IsAtOrAboveFloor(string version, Version? floor) =>
-        floor is null || (Version.TryParse(version, out var parsed) && parsed >= floor);
 
     private class GitHubRelease
     {

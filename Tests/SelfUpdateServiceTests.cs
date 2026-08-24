@@ -208,6 +208,71 @@ public class SelfUpdateServiceTests
         Assert.True(log.Mentions("reports no version"));
     }
 
+    // A release tagged above the assembly version baked into its own asset - a hand-made release or
+    // a workflow that stops deriving both from the same source. Each launch reads it as newer than
+    // itself, so without a record of what the last swap aimed at every launch downloads and swaps
+    // again, forever.
+    [Fact]
+    public async Task A_release_that_stays_newer_after_it_is_installed_is_not_installed_twice()
+    {
+        using var environment = new FakeUpdateEnvironment();
+        var releases = new FakeReleaseSource { Latest = Release("9.9.9") };
+
+        var firstLaunch = Build(environment, releases, out _);
+        Assert.Equal(SelfUpdateOutcome.RelaunchStarted, await firstLaunch.TryUpdateAsync(Channel));
+
+        // The relaunched child: a new service over the same persisted record, still reporting the
+        // version it reported before, because the release it just installed was mis-tagged.
+        var secondLaunch = Build(environment, releases, out var log);
+        var outcome = await secondLaunch.TryUpdateAsync(Channel);
+
+        Assert.Equal(SelfUpdateOutcome.NotApplied, outcome);
+        Assert.Equal(1, releases.DownloadCalls);
+        Assert.Equal([environment.CurrentExecutablePath], environment.Launched);
+        Assert.True(log.Mentions("not applying it again"));
+    }
+
+    [Fact]
+    public async Task A_release_newer_than_the_one_already_installed_is_still_installed()
+    {
+        using var environment = new FakeUpdateEnvironment { LastAppliedTarget = new Version(9, 9, 9, 0) };
+        var releases = new FakeReleaseSource { Latest = Release("10.0.0") };
+        var service = Build(environment, releases, out _);
+
+        Assert.Equal(SelfUpdateOutcome.RelaunchStarted, await service.TryUpdateAsync(Channel));
+        Assert.Equal(new Version(10, 0, 0, 0), environment.LastAppliedTarget);
+    }
+
+    [Fact]
+    public async Task A_swap_that_rolled_itself_back_leaves_nothing_to_suppress_the_retry()
+    {
+        using var environment = new FakeUpdateEnvironment();
+        environment.FailMoveWhen = (source, _) => source.EndsWith(".new", StringComparison.Ordinal);
+        var releases = new FakeReleaseSource { Latest = Release("1.1.0") };
+        var service = Build(environment, releases, out _);
+
+        Assert.Equal(SelfUpdateOutcome.NotApplied, await service.TryUpdateAsync(Channel));
+        Assert.Null(environment.LastAppliedTarget);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task An_unusable_update_record_costs_the_guard_and_not_the_update(bool failRead, bool failWrite)
+    {
+        using var environment = new FakeUpdateEnvironment
+        {
+            FailReadLastAppliedTarget = failRead,
+            FailWriteLastAppliedTarget = failWrite
+        };
+        var releases = new FakeReleaseSource { Latest = Release("1.1.0") };
+        var service = Build(environment, releases, out var log);
+
+        Assert.Equal(SelfUpdateOutcome.RelaunchStarted, await service.TryUpdateAsync(Channel));
+        Assert.Equal(NewImage, environment.ReadImage(environment.CurrentExecutablePath));
+        Assert.True(log.Mentions("update record"));
+    }
+
     [Fact]
     public void The_relaunched_installer_deletes_what_the_previous_update_left_behind()
     {

@@ -31,6 +31,13 @@ internal sealed class FakeUpdateEnvironment : IUpdateEnvironment, IDisposable
 
     public bool FailLaunch { get; set; }
 
+    /// <summary>Survives the executable being replaced, exactly as the real file beside the log does.</summary>
+    public Version? LastAppliedTarget { get; set; }
+
+    public bool FailReadLastAppliedTarget { get; set; }
+
+    public bool FailWriteLastAppliedTarget { get; set; }
+
     public List<string> Launched { get; } = [];
 
     public bool FileExists(string path) => File.Exists(path);
@@ -60,6 +67,22 @@ internal sealed class FakeUpdateEnvironment : IUpdateEnvironment, IDisposable
             throw new InvalidOperationException("refused to launch");
 
         Launched.Add(executablePath);
+    }
+
+    public Version? ReadLastAppliedTarget()
+    {
+        if (FailReadLastAppliedTarget)
+            throw new IOException("refused to read the update record");
+
+        return LastAppliedTarget;
+    }
+
+    public void WriteLastAppliedTarget(Version version)
+    {
+        if (FailWriteLastAppliedTarget)
+            throw new UnauthorizedAccessException("refused to write the update record");
+
+        LastAppliedTarget = version;
     }
 
     public string WithSuffix(string suffix) => CurrentExecutablePath + suffix;

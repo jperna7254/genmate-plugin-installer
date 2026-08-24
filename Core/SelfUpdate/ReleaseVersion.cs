@@ -37,6 +37,23 @@ public static partial class ReleaseVersion
         Math.Max(version.Build, 0),
         Math.Max(version.Revision, 0));
 
+    /// <summary>
+    /// Whether a version clears a channel document's floor. Both sides are normalized, because a
+    /// floor is written by hand in the document and a version comes from a tag: comparing a
+    /// four-part "3.0.0.0" floor against a three-part "3.0.0" tag without normalizing drops the
+    /// matching release with no log and no trace in the UI.
+    /// </summary>
+    public static bool IsAtOrAboveFloor(Version version, Version? floor) =>
+        floor is null || Normalize(version) >= Normalize(floor);
+
+    /// <summary>
+    /// As <see cref="IsAtOrAboveFloor(Version, Version?)"/>, for a version still in the string form
+    /// a release tag carries. A version that will not parse is below every floor rather than above
+    /// it: an unreadable version cannot be shown to clear one.
+    /// </summary>
+    public static bool IsAtOrAboveFloor(string? version, Version? floor) =>
+        floor is null || (Version.TryParse(version, out var parsed) && IsAtOrAboveFloor(parsed, floor));
+
     [GeneratedRegex(@"^\d+(\.\d+){1,3}$")]
     private static partial Regex TagPattern();
 }

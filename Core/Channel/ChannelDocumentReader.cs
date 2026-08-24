@@ -10,8 +10,8 @@ namespace GenMate.PluginInstaller.Core.Channel;
 /// <para>
 /// The invariant this class exists under: <b>channel.json may relax presentation, never
 /// verification.</b> It is an unsigned file fetched over HTTPS, so anyone able to substitute a
-/// release asset can probably substitute it too. That is acceptable only because three facts are
-/// compiled into this binary and cannot be influenced by the document:
+/// release asset can probably substitute it too. What is meant to make that acceptable is three
+/// protections compiled into the binary, which the document cannot influence:
 /// </para>
 /// <list type="number">
 ///   <item>the pinned signing identity is a constant in the binary;</item>
@@ -19,14 +19,25 @@ namespace GenMate.PluginInstaller.Core.Channel;
 ///   <item>an installer update whose signature does not match the same pin is never applied.</item>
 /// </list>
 /// <para>
-/// Walk the attack with those held: repoint the installer asset at a hostile exe and (3) rejects
-/// it; repoint the bundle asset and (2) rejects it; lower a minimumVersion to expose old
-/// unverifiable releases and (2) rejects them; add a host and it is ignored, because this build
-/// only knows hosts it has code for.
+/// <b>None of the three is implemented today.</b> There is no code-signing certificate for this
+/// product, and the captain ruled that self-update ships without verification rather than waiting
+/// for one; <see cref="Core.SelfUpdate.AcceptUnsignedInstallerVerifier"/> accepts every downloaded
+/// installer unconditionally by that ruling, and carries what its replacement must prove. So the
+/// three above are the terms this document is trusted <i>under</i> - the contract the pinned
+/// verification work has to deliver - not a description of what this binary enforces now. Until it
+/// does, substituting channel.json is as damaging as substituting a release asset, and neither is
+/// caught.
 /// </para>
 /// <para>
-/// So: never add a field here that any verification step reads. The reversal this guards against is
-/// one line long - "let channel.json turn verification off for QA" - and
+/// Walk the attack with those three held: repoint the installer asset at a hostile exe and (3)
+/// rejects it; repoint the bundle asset and (2) rejects it; lower a minimumVersion to expose old
+/// unverifiable releases and (2) rejects them; add a host and it is ignored, because this build
+/// only knows hosts it has code for. Only the last of those holds today.
+/// </para>
+/// <para>
+/// So: never add a field here that any verification step reads - that would put the document inside
+/// the protections instead of outside them, and no later certificate could undo it. The reversal
+/// this guards against is one line long - "let channel.json turn verification off for QA" - and
 /// <c>ChannelInvariantTests</c> fails when a property that could carry it appears on these types.
 /// </para>
 /// </remarks>

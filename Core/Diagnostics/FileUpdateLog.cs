@@ -14,15 +14,8 @@ public sealed class FileUpdateLog : IUpdateLog
         _path = path;
     }
 
-    /// <summary>
-    /// Under %LOCALAPPDATA%\GenMate.PluginInstaller, deliberately not the %LOCALAPPDATA%\GenMate
-    /// that <c>PluginInstallService</c> deletes wholesale on every install and uninstall - a log
-    /// that disappears when the user installs a plugin cannot explain a failed install.
-    /// </summary>
-    public static FileUpdateLog Default() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "GenMate.PluginInstaller",
-        "update.log"));
+    public static FileUpdateLog Default() =>
+        new(Path.Combine(InstallerDataDirectory.Path, "update.log"));
 
     public void Write(string message) => Append(message);
 

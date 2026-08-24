@@ -97,8 +97,7 @@ public sealed class SelfUpdateService
                 return SelfUpdateOutcome.NotApplied;
             }
 
-            if (channel.MinimumVersion is not null &&
-                _currentVersion < ReleaseVersion.Normalize(channel.MinimumVersion))
+            if (!ReleaseVersion.IsAtOrAboveFloor(_currentVersion, channel.MinimumVersion))
             {
                 _log.Write($"this build ({_currentVersion}) is below the channel's minimum ({channel.MinimumVersion})");
             }
@@ -116,8 +115,12 @@ public sealed class SelfUpdateService
                 return SelfUpdateOutcome.AlreadyCurrent;
             }
 
-            if (ReleaseVersion.Normalize(latest.Version) <= _currentVersion)
+            var target = ReleaseVersion.Normalize(latest.Version);
+            if (target <= _currentVersion)
                 return SelfUpdateOutcome.AlreadyCurrent;
+
+            if (HasAlreadyBeenApplied(target))
+                return SelfUpdateOutcome.NotApplied;
 
             _log.Write($"updating from {_currentVersion} to {latest.Version}");
 
@@ -133,13 +136,64 @@ public sealed class SelfUpdateService
                 return SelfUpdateOutcome.NotApplied;
             }
 
-            return Swap(downloadPath) ? SelfUpdateOutcome.RelaunchStarted : SelfUpdateOutcome.NotApplied;
+            return Swap(downloadPath, target) ? SelfUpdateOutcome.RelaunchStarted : SelfUpdateOutcome.NotApplied;
         }
         catch (Exception ex)
         {
             _log.Write("update abandoned; carrying on with the current version", ex);
             TryDelete(downloadPath);
             return SelfUpdateOutcome.NotApplied;
+        }
+    }
+
+    /// <summary>
+    /// Whether this exact target has already been swapped in once while this build was running.
+    /// </summary>
+    /// <remarks>
+    /// The 0.0.0.0 guard covers a build that cannot state its version at all. This covers the other
+    /// way the same brick happens: a release tagged above the assembly version baked into its own
+    /// asset. Every launch would then read it as newer, download 65 MB, swap, relaunch into a build
+    /// that reads it as newer again, forever. Recording the target the moment a swap completes
+    /// bounds that to one attempt per published version, because the second attempt is refused
+    /// before anything is downloaded.
+    /// </remarks>
+    private bool HasAlreadyBeenApplied(Version target)
+    {
+        Version? lastApplied;
+        try
+        {
+            lastApplied = _environment.ReadLastAppliedTarget();
+        }
+        catch (Exception ex)
+        {
+            // Best effort by contract: without the record the updater behaves exactly as it did
+            // before the record existed, which is preferable to refusing to update at all.
+            _log.Write("could not read what the last update aimed at; continuing without that guard", ex);
+            return false;
+        }
+
+        if (lastApplied is null)
+            return false;
+
+        var floor = ReleaseVersion.Normalize(lastApplied);
+        if (_currentVersion >= floor || target > floor)
+            return false;
+
+        _log.Write(
+            $"{target} was already installed once and this build still reports {_currentVersion}; " +
+            "not applying it again");
+        return true;
+    }
+
+    private void RecordAppliedTarget(Version target)
+    {
+        try
+        {
+            _environment.WriteLastAppliedTarget(target);
+        }
+        catch (Exception ex)
+        {
+            _log.Write($"could not record {target} as applied; a mis-tagged release could be retried", ex);
         }
     }
 
@@ -160,7 +214,7 @@ public sealed class SelfUpdateService
         return false;
     }
 
-    private bool Swap(string downloadPath)
+    private bool Swap(string downloadPath, Version target)
     {
         var executablePath = _environment.CurrentExecutablePath;
 
@@ -206,6 +260,10 @@ public sealed class SelfUpdateService
             TryDelete(downloadPath);
             return false;
         }
+
+        // Recorded only once both renames have landed, so a swap that failed and rolled itself
+        // back leaves no record to suppress the retry it deserves.
+        RecordAppliedTarget(target);
 
         try
         {

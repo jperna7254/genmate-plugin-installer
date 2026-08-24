@@ -18,4 +18,12 @@ public interface IUpdateEnvironment
     IReadOnlyList<string> ListFiles(string directory, string searchPattern);
 
     void Launch(string executablePath);
+
+    /// <summary>
+    /// The version the last completed swap put in place, or null if none is recorded. Held outside
+    /// the executable's own directory because it has to survive the executable being replaced.
+    /// </summary>
+    Version? ReadLastAppliedTarget();
+
+    void WriteLastAppliedTarget(Version version);
 }
