@@ -8,6 +8,9 @@ Steps 1 to 4 are one-time setup that only the account owner can do, in the Azure
 Steps 5 to 7 are code changes, one ticket per repo. Step 8 is the release order, and it is the part
 that goes wrong if it is skipped.
 
+The YAML in steps 5 and 6 is a starting point for those tickets. Once a ticket lands, its workflow is
+the source of truth: replace that step here with a pointer to the workflow, so the two cannot drift.
+
 ## What the warning is, and what signing does and does not fix
 
 A user who downloads the installer from GitHub Releases in a browser gets a file marked as coming from
@@ -47,9 +50,11 @@ Use **Azure Artifact Signing** (called *Trusted Signing* until January 2026).
   lists the checks its replacement must make, and they are Artifact Signing's (identity EKU
   `1.3.6.1.4.1.311.97.*`, the Microsoft Identity Verification Root CA 2020 chain, a required timestamp).
   Buying a certificate from a commercial CA instead would mean rewriting that plan.
-- Basic tier: 5,000 signatures a month and one certificate profile, far more than GenMate uses. It is
-  billed monthly from account creation. Check the current price in the Azure pricing calculator (it has
-  been listed at USD 9.99/month).
+- Basic tier: 5,000 signatures a month and one certificate profile of each type, far more than GenMate
+  uses. It is billed monthly, in full, from account creation. Check the current price in the Azure
+  pricing calculator.
+- It needs a **paid** Azure subscription (pay-as-you-go or better). Free, trial and sponsored
+  subscriptions are refused.
 
 Rejected: an OV certificate from a commercial CA (a hardware token or a cloud HSM, a yearly renewal,
 and no better SmartScreen result). EV (costs more and no longer skips SmartScreen). Self-signed, which
@@ -72,7 +77,7 @@ no entity yet, knowing that a later switch starts the reputation over.
 
 ## 2. Create the Artifact Signing account (Azure portal)
 
-Needs an Azure subscription and a Microsoft Entra tenant.
+Needs a paid Azure subscription and a Microsoft Entra tenant.
 
 1. **Subscriptions > your subscription > Resource providers**: register `Microsoft.CodeSigning`.
 2. **Artifact Signing Accounts > Create**:
@@ -171,7 +176,7 @@ In `.github/workflows/build-release-prod.yml`:
         endpoint: https://eus.codesigning.azure.net/
         signing-account-name: genmatesigning
         certificate-profile-name: genmate-public
-        files: ${{ github.workspace }}\bin\Release\net10.0-windows\win-x64\publish\GenMate.PluginInstaller.exe
+        files: ${{ github.workspace }}/bin/Release/net10.0-windows/win-x64/publish/GenMate.PluginInstaller.exe
         file-digest: SHA256
         timestamp-rfc3161: http://timestamp.acs.microsoft.com
         timestamp-digest: SHA256
@@ -199,6 +204,10 @@ In `.github/workflows/build-release-prod.yml`:
 
 Points to keep:
 
+- **Pin both actions to a full commit SHA with a version comment**, the way this workflow already pins
+  `softprops/action-gh-release`. The tags above are only there to make the example readable.
+- **`files` must be absolute paths.** That is why it starts with `${{ github.workspace }}`.
+
 - **Signing comes after `dotnet publish` and signs the single-file exe as a whole.** Nothing may touch
   the exe after signing, or the signature breaks.
 - **The verify step makes a failed signing fail the release.** Once step 7 ships, an unsigned release
@@ -216,10 +225,15 @@ in both the AutoCAD and the BricsCAD jobs:
 1. Add `id-token: write` to the job permissions.
 2. Replace the steps that decode `SIGNING_CERTIFICATE_BASE64` into a `.pfx`, loop `signtool sign` over
    the DLLs and delete the certificate with an `azure/login@v3` step and an
-   `azure/artifact-signing-action@v2` step. Use the same `endpoint`, `signing-account-name`,
-   `certificate-profile-name`, timestamp and `exclude-*` inputs as in step 5, with `files:` listing the
-   same four DLLs the job signs today (Abstractions, Core, UI, and Acad24 or Brics24) and
-   `description: GenMate Plugin`.
+   `azure/artifact-signing-action@v2` step, both pinned to a SHA like the rest of that workflow. Use the
+   same `endpoint`, `signing-account-name`, `certificate-profile-name`, timestamp and `exclude-*` inputs
+   as in step 5, with `files:` listing the same four DLLs the job signs today (Abstractions, Core, UI,
+   and Acad24 or Brics24) and `description: GenMate Plugin`. **The paths must be absolute**
+   (`${{ github.workspace }}/src/...`). The workflow's current DLL paths are relative and will fail if
+   copied as they are.
+   **Give the new steps the same `if:` as the signing steps they replace in that job.** The two jobs
+   use different conditions (the BricsCAD job also checks that the SDK is present), so do not copy
+   step 5's condition.
 3. Turn the disabled `signtool verify /pa` check back on. Its comment says to do this once the
    certificate is CA-issued, and Artifact Signing's is.
 4. Keep signing the last thing that touches the binaries. The plugin's `AGENTS.md` already requires
@@ -237,9 +251,23 @@ that comment cannot give is the subscriber-specific identity EKU. Read it from t
 ```powershell
 $sig = Get-AuthenticodeSignature .\GenMate.PluginInstaller.exe
 $sig.SignerCertificate.EnhancedKeyUsageList
-# Take the 1.3.6.1.4.1.311.97.* entry. It stays the same for this identity validation as certificates
-# rotate, and it changes only if the identity is validated again.
 ```
+
+The list has **two** entries starting `1.3.6.1.4.1.311.97.`. Pin the long one, which is unique to GenMate's identity
+(Microsoft's example of the shape: `1.3.6.1.4.1.311.97.990309390.766961637.194916062.941502583`).
+**Never pin `1.3.6.1.4.1.311.97.1.0`.** Every Artifact Signing Public Trust certificate carries it, so
+pinning it would accept anyone's signed file, which is exactly what the verifier comment forbids.
+
+**Open question the step 7 ticket must settle before it ships: does the pinned EKU survive renewing
+the identity validation?** Microsoft's docs disagree. The certificate management page says the value
+is "unique to the identity validation resource". The renewal page says "EKU values are unique at the
+certificate profile level", and its renewal steps delete the certificate profile and create it again.
+If renewal changes the EKU, every customer's installer rejects every update signed after the renewal,
+and a fix cannot reach them, because the fix would be signed with the new EKU too. The verifier has to
+survive this before it ships. Possible answers: accept a list of EKUs and release the new one while
+the old profile still signs (a second Public Trust profile needs the Premium tier), or confirm with
+Azure support that renewal keeps the EKU. That is a design decision for that ticket, not this
+procedure.
 
 ## 8. Release order
 
@@ -271,14 +299,19 @@ release zip.
 
 ## Keeping it working
 
-- **Nothing expires on the GenMate side.** Certificates rotate inside Azure. What can break signing: the
-  Azure subscription lapsing or losing its payment method, the identity validation being revoked, the
+- **The identity validation expires and must be renewed.** The expiry date is on the account's
+  Identity validations page, and Azure emails reminders from 60 days before it. Renewal is a full
+  re-review that can take 1 to 20 business days and may ask for documents again, so **start it as soon
+  as the 60-day window opens**. If it lapses, certificate renewal stops, and signing stops within about
+  three days. Renewal finishes by deleting the certificate profile and creating it again with the same
+  name, so the workflows need no change. Read the step 7 open question before doing this once the
+  strict verifier has shipped.
+- **Signing certificates rotate daily inside Azure**, and there is no certificate file to renew. The
+  other things that break signing: the Azure subscription lapsing or losing its payment method, the
   Entra app or its role assignment being deleted, or a workflow's OIDC subject changing (renaming a
   repo or branch, or moving a job into an environment).
 - **Identity validation details cannot be edited.** A change of legal name or address means a new
-  validation. That gives a new identity EKU, which the step 7 verifier rejects, so that same release
-  must ship a verifier that accepts the new EKU. Release it signed with the old profile while it still
-  works, and only then switch the profile.
+  validation, which means a new identity EKU and the same problem as the step 7 open question.
 - If a signing step fails with a 403, the Entra app is missing the **Artifact Signing Certificate
   Profile Signer** role on the account. If `azure/login` fails, the federated credential subject does
   not match the run.
