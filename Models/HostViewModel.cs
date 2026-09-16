@@ -4,10 +4,9 @@ namespace GenMate.PluginInstaller.Models;
 
 public class HostViewModel
 {
-    public HostViewModel(HostStatus status, string displayName, List<PluginVersionInfo> availableVersions)
+    public HostViewModel(HostStatus status, List<PluginVersionInfo> availableVersions)
     {
         Host = status.Host;
-        DisplayName = displayName;
         InstalledVersion = status.InstalledVersion;
         AvailableVersions = availableVersions;
 
@@ -16,7 +15,7 @@ public class HostViewModel
     }
 
     public PluginHost Host { get; }
-    public string DisplayName { get; }
+    public string DisplayName => Host.ApplicationName;
     public string? InstalledVersion { get; }
     public bool IsPluginInstalled => InstalledVersion is not null;
     public List<PluginVersionInfo> AvailableVersions { get; }

@@ -172,12 +172,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var selectedHostId = SelectedHost?.Host.Id;
         _isLoaded = true;
         Hosts = statuses
-            .Select(status => new HostViewModel(
-                status,
-                _channel.Plugin.Hosts.TryGetValue(status.Host.Id, out var channelHost)
-                    ? channelHost.DisplayName
-                    : status.Host.ApplicationName,
-                versions.GetValueOrDefault(status.Host.Id) ?? []))
+            .Select(status => new HostViewModel(status, versions.GetValueOrDefault(status.Host.Id) ?? []))
             .ToList();
         SelectedHost = Hosts.FirstOrDefault(h => h.Host.Id == selectedHostId) ?? Hosts.FirstOrDefault();
     }
@@ -200,8 +195,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (_hostMachine.IsApplicationRunning(host.Host))
         {
             MessageBox.Show(
-                $"Please close {host.Host.ApplicationName} before installing the plugin.",
-                $"{host.Host.ApplicationName} Is Running",
+                $"Please close {host.DisplayName} before installing the plugin.",
+                $"{host.DisplayName} Is Running",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -260,8 +255,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (_hostMachine.IsApplicationRunning(host.Host))
         {
             MessageBox.Show(
-                $"Please close {host.Host.ApplicationName} before uninstalling the plugin.",
-                $"{host.Host.ApplicationName} Is Running",
+                $"Please close {host.DisplayName} before uninstalling the plugin.",
+                $"{host.DisplayName} Is Running",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;

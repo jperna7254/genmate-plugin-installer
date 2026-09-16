@@ -35,7 +35,7 @@ public sealed class ChannelDocument
             {
                 [CadHosts.AutoCad] = new()
                 {
-                    DisplayName = "AutoCAD",
+                    DisplayName = "AutoCAD 2024",
                     BundleAsset = "GenMate.bundle-v{version}.zip",
                     ManifestAsset = "GenMate.bundle-v{version}.manifest.json",
                     SignatureAsset = "GenMate.bundle-v{version}.manifest.p7s",

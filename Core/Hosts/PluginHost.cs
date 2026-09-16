@@ -15,7 +15,10 @@ public sealed class PluginHost
 {
     public required string Id { get; init; }
 
-    /// <summary>The application's own name, for when the channel document does not name the host.</summary>
+    /// <summary>
+    /// The application and the release GenMate supports in it. Compiled in rather than taken from the
+    /// channel document's displayName, because the release is fixed by the adapter this build installs.
+    /// </summary>
     public required string ApplicationName { get; init; }
 
     public required string PluginsDirectory { get; init; }
@@ -35,7 +38,7 @@ public sealed class PluginHost
     public static PluginHost AutoCad(string programData) => new()
     {
         Id = CadHosts.AutoCad,
-        ApplicationName = "AutoCAD",
+        ApplicationName = "AutoCAD 2024",
         PluginsDirectory = Path.Combine(programData, "Autodesk", "ApplicationPlugins"),
         BundleFolderName = "GenMate.bundle",
         ProcessName = "acad"
