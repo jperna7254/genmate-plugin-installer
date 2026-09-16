@@ -207,7 +207,6 @@ Points to keep:
 - **Pin both actions to a full commit SHA with a version comment**, the way this workflow already pins
   `softprops/action-gh-release`. The tags above are only there to make the example readable.
 - **`files` must be absolute paths.** That is why it starts with `${{ github.workspace }}`.
-
 - **Signing comes after `dotnet publish` and signs the single-file exe as a whole.** Nothing may touch
   the exe after signing, or the signature breaks.
 - **The verify step makes a failed signing fail the release.** Once step 7 ships, an unsigned release
@@ -253,8 +252,9 @@ $sig = Get-AuthenticodeSignature .\GenMate.PluginInstaller.exe
 $sig.SignerCertificate.EnhancedKeyUsageList
 ```
 
-The list has **two** entries starting `1.3.6.1.4.1.311.97.`. Pin the long one, which is unique to GenMate's identity
-(Microsoft's example of the shape: `1.3.6.1.4.1.311.97.990309390.766961637.194916062.941502583`).
+The list has **two** entries starting `1.3.6.1.4.1.311.97.`. Pin the long one, which is unique to
+GenMate's identity. Microsoft's example of its shape is
+`1.3.6.1.4.1.311.97.990309390.766961637.194916062.941502583`.
 **Never pin `1.3.6.1.4.1.311.97.1.0`.** Every Artifact Signing Public Trust certificate carries it, so
 pinning it would accept anyone's signed file, which is exactly what the verifier comment forbids.
 
@@ -273,13 +273,15 @@ procedure.
 
 1. **Release A:** step 5 only. Bump the installer `Version`, merge to `main`, and confirm the release
    job signed it (check below). A plugin release with step 6 can go out any time after step 4.
-2. **Release B:** step 7, the strict verifier, with the EKU read from release A.
+2. **Release B:** step 7, the strict verifier, with the EKU read from release A. **Do not ship it until
+   the step 7 open question is settled.**
 
 **Never ship steps 5 and 7 in the same release, and never ship 7 first.** The verifier checks the
 *downloaded next* installer. Customers on a pre-7 build accept anything, so release B reaches them.
 From then on every release must be signed, or those customers stay on B silently. That is correct
-behaviour, but it means a lapsed Azure subscription or a broken signing step stops updates for
-everyone until it is fixed.
+behaviour, but from then on these stop updates for everyone: a lapsed Azure subscription, a broken
+signing step, an expired identity validation, or a renewal that changes the EKU (see "Keeping it
+working").
 
 ## Checking a release
 
@@ -302,8 +304,10 @@ release zip.
 - **The identity validation expires and must be renewed.** The expiry date is on the account's
   Identity validations page, and Azure emails reminders from 60 days before it. Renewal is a full
   re-review that can take 1 to 20 business days and may ask for documents again, so **start it as soon
-  as the 60-day window opens**. If it lapses, certificate renewal stops, and signing stops within about
-  three days. Renewal finishes by deleting the certificate profile and creating it again with the same
+  as the 60-day window opens**. If it lapses, certificate renewal stops and signing stops within about
+  three days. An expired validation cannot be renewed: you must create a new one, which certainly
+  means a new identity EKU. Once the strict verifier has shipped, that locks every customer out of
+  updates. Renewal finishes by deleting the certificate profile and creating it again with the same
   name, so the workflows need no change. Read the step 7 open question before doing this once the
   strict verifier has shipped.
 - **Signing certificates rotate daily inside Azure**, and there is no certificate file to renew. The
