@@ -35,10 +35,18 @@ public sealed class ChannelDocument
             {
                 [CadHosts.AutoCad] = new()
                 {
-                    DisplayName = "AutoCAD",
+                    DisplayName = "AutoCAD 2024",
                     BundleAsset = "GenMate.bundle-v{version}.zip",
                     ManifestAsset = "GenMate.bundle-v{version}.manifest.json",
                     SignatureAsset = "GenMate.bundle-v{version}.manifest.p7s",
+                    MinimumVersion = null
+                },
+                [CadHosts.BricsCad] = new()
+                {
+                    DisplayName = "BricsCAD V24",
+                    BundleAsset = "GenMate.bricscad.bundle-v{version}.zip",
+                    ManifestAsset = "GenMate.bricscad.bundle-v{version}.manifest.json",
+                    SignatureAsset = "GenMate.bricscad.bundle-v{version}.manifest.p7s",
                     MinimumVersion = null
                 }
             }
@@ -100,6 +108,8 @@ public static class CadHosts
 {
     public const string AutoCad = "autocad";
 
+    public const string BricsCad = "bricscad";
+
     /// <summary>The hosts this build can actually detect, install into and register with.</summary>
-    public static IReadOnlySet<string> Known { get; } = new HashSet<string>(StringComparer.Ordinal) { AutoCad };
+    public static IReadOnlySet<string> Known { get; } = new HashSet<string>(StringComparer.Ordinal) { AutoCad, BricsCad };
 }

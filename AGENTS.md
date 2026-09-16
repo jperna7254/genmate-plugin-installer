@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this is
 
-GenMate.PluginInstaller is a desktop app that installs the GenMate AutoCAD plugin. It is part of the larger GenMate ecosystem (see parent `GenMate/CLAUDE.md` for full architecture).
+GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is part of the larger GenMate ecosystem (see parent `GenMate/CLAUDE.md` for full architecture).
 
 ## Build & Run
 

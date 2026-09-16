@@ -5,5 +5,6 @@ namespace GenMate.PluginInstaller.Services;
 
 public interface IVersionService
 {
-    Task<List<PluginVersionInfo>> GetAvailableVersionsAsync(PluginChannel channel);
+    /// <summary>The releases offered for each host the channel names, keyed by host id.</summary>
+    Task<IReadOnlyDictionary<string, List<PluginVersionInfo>>> GetAvailableVersionsAsync(PluginChannel channel);
 }
