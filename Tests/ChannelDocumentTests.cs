@@ -28,6 +28,13 @@ public class ChannelDocumentTests
                 "manifestAsset":  "GenMate.bricscad.bundle-v{version}.manifest.json",
                 "signatureAsset": "GenMate.bricscad.bundle-v{version}.manifest.p7s",
                 "minimumVersion": null
+              },
+              "zwcad": {
+                "displayName": "ZWCAD",
+                "bundleAsset":    "GenMate.zwcad.bundle-v{version}.zip",
+                "manifestAsset":  "GenMate.zwcad.bundle-v{version}.manifest.json",
+                "signatureAsset": "GenMate.zwcad.bundle-v{version}.manifest.p7s",
+                "minimumVersion": null
               }
             }
           }
@@ -51,7 +58,7 @@ public class ChannelDocumentTests
     {
         ChannelDocumentParser.TryParse(TwoHostDocument, out var document, out _);
 
-        Assert.Equal([CadHosts.AutoCad], document.Plugin.Hosts.Keys.Order().ToArray());
+        Assert.Equal([CadHosts.AutoCad, CadHosts.BricsCad], document.Plugin.Hosts.Keys.Order().ToArray());
     }
 
     [Fact]
@@ -107,5 +114,7 @@ public class ChannelDocumentTests
         Assert.Equal("jperna7254/genmate-plugin-installer", fallback.Installer.Repo);
         Assert.Equal("GenMate.bundle-v3.0.0.zip",
             fallback.Plugin.Hosts[CadHosts.AutoCad].ResolveBundleAsset("3.0.0"));
+        Assert.Equal("GenMate.bricscad.bundle-v5.2.0.zip",
+            fallback.Plugin.Hosts[CadHosts.BricsCad].ResolveBundleAsset("5.2.0"));
     }
 }

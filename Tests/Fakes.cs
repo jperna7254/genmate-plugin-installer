@@ -1,5 +1,6 @@
 using GenMate.PluginInstaller.Core.Channel;
 using GenMate.PluginInstaller.Core.Diagnostics;
+using GenMate.PluginInstaller.Core.Hosts;
 using GenMate.PluginInstaller.Core.SelfUpdate;
 
 namespace GenMate.PluginInstaller.Tests;
@@ -167,4 +168,24 @@ internal sealed class ThrowingVerifier : IInstallerVerifier
 {
     public bool IsTrusted(string installerPath, out string? reason) =>
         throw new InvalidOperationException("verifier exploded");
+}
+
+internal sealed class FakeHostMachine : IHostMachine
+{
+    public HashSet<string> InstalledApplications { get; } = [];
+
+    public HashSet<string> RunningApplications { get; } = [];
+
+    /// <summary>Registry key path to the LOADER value written under it.</summary>
+    public Dictionary<string, string> DemandLoads { get; } = [];
+
+    public bool IsApplicationInstalled(PluginHost host) => InstalledApplications.Contains(host.Id);
+
+    public bool IsApplicationRunning(PluginHost host) => RunningApplications.Contains(host.Id);
+
+    public void RegisterDemandLoad(DemandLoadRegistration registration, string loaderPath) =>
+        DemandLoads[registration.KeyPath] = loaderPath;
+
+    public void UnregisterDemandLoad(DemandLoadRegistration registration) =>
+        DemandLoads.Remove(registration.KeyPath);
 }

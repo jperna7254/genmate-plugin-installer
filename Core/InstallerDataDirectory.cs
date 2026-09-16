@@ -6,7 +6,7 @@ namespace GenMate.PluginInstaller.Core;
 /// </summary>
 /// <remarks>
 /// Deliberately %LOCALAPPDATA%\GenMate.PluginInstaller and not the %LOCALAPPDATA%\GenMate that
-/// <c>PluginInstallService</c> deletes wholesale on every install and uninstall: state that
+/// <c>PluginHostService</c> deletes wholesale on install and uninstall: state that
 /// disappears when the user installs a plugin cannot explain a failed install, and cannot stop an
 /// update from being retried forever.
 /// </remarks>
