@@ -13,7 +13,8 @@ namespace GenMate.PluginInstaller.Core.SelfUpdate;
 /// future fix - this one included - requires every customer to manually re-download.
 /// </para>
 /// <para>
-/// What the replacement must do once a certificate exists, in place of returning true:
+/// What the replacement must do once a certificate exists, in place of returning true. Obtaining the
+/// certificate, and the release order this replacement must follow, is <c>docs/code-signing.md</c>:
 /// </para>
 /// <list type="number">
 ///   <item>read the downloaded file's Authenticode signature and reject if there is none;</item>
