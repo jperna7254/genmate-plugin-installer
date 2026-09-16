@@ -15,8 +15,7 @@ namespace GenMate.PluginInstaller.Services;
 //   - it must carry the bundle asset the channel document names for each host; a release without
 //     one still appears in that host's version list, marked as having no package, and cannot be
 //     installed for it;
-//   - that zip's layout is PluginHost's contract, whose PackageContents.xml carries the installed
-//     version in its AppVersion attribute;
+//   - that zip's layout is PluginHost's contract;
 //   - that AppVersion value must equal the tag with its leading "v" removed, character for
 //     character, because HostViewModel compares the two with exact string equality.
 //     A "v1.2.3" tag shipping AppVersion="1.2.3.0" satisfies every clause above and installs

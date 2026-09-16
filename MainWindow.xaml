@@ -124,6 +124,16 @@
                                        Margin="0,0,0,8" />
 
                             <TextBlock DockPanel.Dock="Top"
+                                       Visibility="{Binding IsNotPublished, Converter={StaticResource BoolToVisibility}}"
+                                       TextWrapping="Wrap"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}">
+                                <Run Text="GenMate for" />
+                                <Run Text="{Binding DisplayName, Mode=OneWay}" />
+                                <Run Text="is not published yet." />
+                            </TextBlock>
+
+                            <TextBlock DockPanel.Dock="Top"
                                        Text="No releases are available right now."
                                        Visibility="{Binding HasNoVersions, Converter={StaticResource BoolToVisibility}}"
                                        FontSize="12"

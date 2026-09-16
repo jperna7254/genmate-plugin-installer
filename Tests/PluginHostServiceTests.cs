@@ -120,6 +120,19 @@ public class PluginHostServiceTests : IDisposable
     }
 
     [Fact]
+    public void A_refused_registration_leaves_the_existing_install_whole()
+    {
+        _service.InstallFromZip(_bricsCad, BricsCadZip("5.1.0"));
+        _machine.FailRegister = true;
+
+        Assert.Throws<UnauthorizedAccessException>(() => _service.InstallFromZip(_bricsCad, BricsCadZip("5.2.0")));
+
+        Assert.Equal("5.1.0", _service.GetInstalledVersion(_bricsCad));
+        Assert.True(File.Exists(Path.Combine(_bricsCad.BundlePath, "Contents", "GenMate.Plugin.Brics24.dll")));
+        Assert.Equal(["GenMate.bricscad.bundle"], EntriesOf(_bricsCad.PluginsDirectory));
+    }
+
+    [Fact]
     public void A_BricsCAD_zip_without_the_adapter_is_refused_before_anything_is_registered()
     {
         var zip = BuildZip("GenMate.bricscad.bundle", "5.2.0", includeBricsAdapter: false);

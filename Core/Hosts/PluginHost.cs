@@ -7,18 +7,17 @@ namespace GenMate.PluginInstaller.Core.Hosts;
 /// </summary>
 /// <remarks>
 /// Cross-repo contract with genmate-plugin's release workflow, invisible from that repo: each host's
-/// zip has <see cref="BundleFolderName"/> as its single root folder, holding a PackageContents.xml
-/// whose AppVersion is the installed version; the BricsCAD bundle also carries
+/// zip has <see cref="BundleFolderName"/> as its single root folder, holding a
+/// <see cref="ManifestFileName"/> whose AppVersion is the installed version; the BricsCAD bundle also carries
 /// <c>Contents\GenMate.Plugin.Brics24.dll</c>, the assembly its DemandLoad entry points at.
 /// </remarks>
 public sealed class PluginHost
 {
+    public const string ManifestFileName = "PackageContents.xml";
+
     public required string Id { get; init; }
 
-    /// <summary>
-    /// The application and the release GenMate supports in it. Compiled in rather than taken from the
-    /// channel document's displayName, because the release is fixed by the adapter this build installs.
-    /// </summary>
+    /// <summary>The application and release this host's adapter targets, for when the channel document does not name the host.</summary>
     public required string ApplicationName { get; init; }
 
     public required string PluginsDirectory { get; init; }
@@ -33,7 +32,7 @@ public sealed class PluginHost
 
     public string BundlePath => Path.Combine(PluginsDirectory, BundleFolderName);
 
-    public string ManifestPath => Path.Combine(BundlePath, "PackageContents.xml");
+    public string ManifestPath => Path.Combine(BundlePath, ManifestFileName);
 
     public static PluginHost AutoCad(string programData) => new()
     {

@@ -172,7 +172,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var selectedHostId = SelectedHost?.Host.Id;
         _isLoaded = true;
         Hosts = statuses
-            .Select(status => new HostViewModel(status, versions.GetValueOrDefault(status.Host.Id) ?? []))
+            .Select(status => new HostViewModel(
+                status,
+                _channel.Plugin.Hosts.TryGetValue(status.Host.Id, out var channelHost)
+                    ? channelHost.DisplayName
+                    : status.Host.ApplicationName,
+                versions.GetValueOrDefault(status.Host.Id)))
             .ToList();
         SelectedHost = Hosts.FirstOrDefault(h => h.Host.Id == selectedHostId) ?? Hosts.FirstOrDefault();
     }

@@ -183,8 +183,15 @@ internal sealed class FakeHostMachine : IHostMachine
 
     public bool IsApplicationRunning(PluginHost host) => RunningApplications.Contains(host.Id);
 
-    public void RegisterDemandLoad(DemandLoadRegistration registration, string loaderPath) =>
+    public bool FailRegister { get; set; }
+
+    public void RegisterDemandLoad(DemandLoadRegistration registration, string loaderPath)
+    {
+        if (FailRegister)
+            throw new UnauthorizedAccessException("refused to write the registry");
+
         DemandLoads[registration.KeyPath] = loaderPath;
+    }
 
     public void UnregisterDemandLoad(DemandLoadRegistration registration) =>
         DemandLoads.Remove(registration.KeyPath);

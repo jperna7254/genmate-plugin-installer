@@ -3,7 +3,6 @@ using System.Xml.Linq;
 
 namespace GenMate.PluginInstaller.Core.Hosts;
 
-/// <summary>Installs, updates, detects and removes GenMate for each CAD host, one host at a time.</summary>
 public sealed class PluginHostService
 {
     private readonly IReadOnlyList<PluginHost> _hosts;
@@ -54,7 +53,7 @@ public sealed class PluginHostService
             ZipFile.ExtractToDirectory(zipPath, staging);
 
             var stagedBundle = Path.Combine(staging, host.BundleFolderName);
-            if (!File.Exists(Path.Combine(stagedBundle, "PackageContents.xml")))
+            if (!File.Exists(Path.Combine(stagedBundle, PluginHost.ManifestFileName)))
                 throw new InvalidDataException(
                     $"The downloaded package is not a GenMate package for {host.ApplicationName}: it has no {host.BundleFolderName} folder.");
 
@@ -62,15 +61,18 @@ public sealed class PluginHostService
                 throw new InvalidDataException(
                     $"The downloaded package for {host.ApplicationName} is incomplete: it has no {demandLoad.AssemblyPath[^1]}.");
 
+            // Registered before the old bundle is touched, because the entry names the final path
+            // rather than the files: a refused registry write then leaves the existing install whole,
+            // instead of a bundle that shows as installed but that BricsCAD never loads.
+            if (host.DemandLoad is { } registration)
+                _machine.RegisterDemandLoad(registration, registration.ResolveAssembly(host.BundlePath));
+
             if (Directory.Exists(host.BundlePath))
                 Directory.Delete(host.BundlePath, true);
 
             ClearSharedUserDataUnlessInUseBesides(host);
 
             Directory.Move(stagedBundle, host.BundlePath);
-
-            if (host.DemandLoad is { } registration)
-                _machine.RegisterDemandLoad(registration, registration.ResolveAssembly(host.BundlePath));
         }
         finally
         {

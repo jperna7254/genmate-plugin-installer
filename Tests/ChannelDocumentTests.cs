@@ -4,7 +4,7 @@ namespace GenMate.PluginInstaller.Tests;
 
 public class ChannelDocumentTests
 {
-    private const string TwoHostDocument = """
+    private const string MultiHostDocument = """
         {
           "schema": 2,
           "installer": {
@@ -44,7 +44,7 @@ public class ChannelDocumentTests
     [Fact]
     public void A_schema_2_document_is_read()
     {
-        Assert.True(ChannelDocumentParser.TryParse(TwoHostDocument, out var document, out var failure));
+        Assert.True(ChannelDocumentParser.TryParse(MultiHostDocument, out var document, out var failure));
 
         Assert.Null(failure);
         Assert.Equal("jperna7254/genmate-plugin-installer", document.Installer.Repo);
@@ -56,7 +56,7 @@ public class ChannelDocumentTests
     [Fact]
     public void A_host_this_build_has_no_code_for_is_ignored_rather_than_offered()
     {
-        ChannelDocumentParser.TryParse(TwoHostDocument, out var document, out _);
+        ChannelDocumentParser.TryParse(MultiHostDocument, out var document, out _);
 
         Assert.Equal([CadHosts.AutoCad, CadHosts.BricsCad], document.Plugin.Hosts.Keys.Order().ToArray());
     }
@@ -64,7 +64,7 @@ public class ChannelDocumentTests
     [Fact]
     public void Asset_names_are_anchored_templates_rather_than_prefixes()
     {
-        ChannelDocumentParser.TryParse(TwoHostDocument, out var document, out _);
+        ChannelDocumentParser.TryParse(MultiHostDocument, out var document, out _);
         var host = document.Plugin.Hosts[CadHosts.AutoCad];
 
         Assert.Equal("GenMate.bundle-v3.1.0.zip", host.ResolveBundleAsset("3.1.0"));
@@ -77,7 +77,7 @@ public class ChannelDocumentTests
     [InlineData(3)]
     public void A_document_declaring_another_schema_is_refused_whole(int schema)
     {
-        var json = TwoHostDocument.Replace("\"schema\": 2", $"\"schema\": {schema}");
+        var json = MultiHostDocument.Replace("\"schema\": 2", $"\"schema\": {schema}");
 
         Assert.False(ChannelDocumentParser.TryParse(json, out var document, out var failure));
         Assert.Contains("schema", failure);
@@ -100,7 +100,7 @@ public class ChannelDocumentTests
     [Fact]
     public void An_unparseable_version_floor_is_refused_rather_than_ignored()
     {
-        var json = TwoHostDocument.Replace("\"minimumVersion\": \"1.1.0\"", "\"minimumVersion\": \"latest\"");
+        var json = MultiHostDocument.Replace("\"minimumVersion\": \"1.1.0\"", "\"minimumVersion\": \"latest\"");
 
         Assert.False(ChannelDocumentParser.TryParse(json, out _, out var failure));
         Assert.Contains("minimumVersion", failure);

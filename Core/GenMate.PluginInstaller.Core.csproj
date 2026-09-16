@@ -2,7 +2,7 @@
 
   <!-- net10.0, not net10.0-windows: the self-update and channel code must be unit-testable on the
        WSL build machine, and a project that pulls in Microsoft.WindowsDesktop.App cannot run there.
-       Anything needing WPF, the registry, or ProgramData stays in the app project. -->
+       Anything needing WPF or the registry stays in the app project; ProgramData paths are passed in. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
