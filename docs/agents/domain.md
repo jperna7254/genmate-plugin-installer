@@ -2,31 +2,18 @@
 
 How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-This repo uses the **single-context** layout: one `CONTEXT.md` at the repo root, with ADRs under `docs/adr/`.
+## This repo is one context
+
+GenMate is split into contexts, listed in the [context map](https://github.com/jperna7254/genmate-datamodels/blob/main/CONTEXT-MAP.md) in genmate-datamodels. This repo is the whole of the **Plugin installation** context, a generic one: it shares no vocabulary with any other context.
+
+Its words (channel, host, bundle asset, self-update) mean nothing elsewhere in GenMate, and GenMate's words (block, circuit, material, quote) mean nothing here. Do not read this repo's words through the shared glossary in genmate-datamodels, and do not add them to it.
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root.
+- **`CONTEXT.md`** at the repo root, if it exists.
 - **`docs/adr/`**: read ADRs that touch the area you're about to work in.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
-
-## File structure
-
-```
-/
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-....md
-│   └── 0002-....md
-└── ...
-```
-
-## Use the glossary's vocabulary
-
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
+This repo has no `CONTEXT.md` yet, and gets one only when one of its words needs defining. If either is missing, **proceed silently**. Don't flag the absence and don't suggest creating it upfront. The `/domain-modeling` skill creates it when a term actually gets resolved.
 
 ## Flag ADR conflicts
 
