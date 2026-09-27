@@ -13,7 +13,11 @@ Its words (channel, host, bundle asset, self-update) mean nothing elsewhere in G
 - **`CONTEXT.md`** at the repo root, if it exists.
 - **`docs/adr/`**: read ADRs that touch the area you're about to work in.
 
-This repo has no `CONTEXT.md` yet, and gets one only when one of its words needs defining. If either is missing, **proceed silently**. Don't flag the absence and don't suggest creating it upfront. The `/domain-modeling` skill creates it when a term actually gets resolved.
+This repo gets a `CONTEXT.md` only when one of its words needs defining. If either of these is missing, **proceed silently**. Don't flag the absence and don't suggest creating it upfront. The `/domain-modeling` skill creates it when a term actually gets resolved.
+
+## Use the glossary's vocabulary
+
+When your output names a concept `CONTEXT.md` defines (in an issue title, a refactor proposal, a test name), use its term, not a synonym it avoids.
 
 ## Flag ADR conflicts
 
