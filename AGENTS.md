@@ -8,7 +8,7 @@ What spans the five GenMate repos is in `~/src/GenMate/AGENTS.md`, which a sessi
 
 ## Releasing: merging to `main` IS the release
 
-Feature PRs target `main`; `develop` is stale (`build-qa.yml`). A merge publishes only when `Version` in the csproj has no tag yet, so a PR meant to ship bumps it, and is not done until `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'` lists `GenMate.PluginInstaller.exe`.
+Feature PRs target `main`; `develop` is stale (`build-qa.yml`). A merge publishes only when `Version` in the csproj has no tag yet, so a PR meant to ship bumps it, and is not done until `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'` lists `GenMate.PluginInstaller.exe`. Size the bump by what shipped since the last tag: patch for a small change (an icon, a minor fix), minor for a feature, major for a break.
 
 ## Agent skills
 
