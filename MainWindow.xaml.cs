@@ -49,6 +49,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _downloadProgress;
     private string? _statusMessage;
 
+    // Composed by hand with `new`, deliberately: a DI container is not worth it at this size.
+    // Reconsider one if the app grows.
     public MainWindow()
     {
         var log = FileUpdateLog.Default();

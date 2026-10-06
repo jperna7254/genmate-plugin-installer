@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Merging to main publishes only when no tag v<Version> exists yet; otherwise the release run
+         goes green and ships nothing (build-release-prod.yml). A PR meant to ship bumps this; one
+         that is not leaves it alone, and its change goes out with the next bump. -->
     <Version>1.2.0</Version>
     <AssemblyTitle>GenMate Plugin Installer</AssemblyTitle>
     <Product>GenMate Plugin Installer</Product>
