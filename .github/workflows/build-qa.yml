@@ -1,5 +1,5 @@
-# develop is stale, not the integration branch: feature PRs target main, develop trails it and
-# has taken no merge since March 2026, so this runs only if someone pushes to develop by hand.
+# develop is stale, not the integration branch: it trails main and takes no merges, so this runs
+# only if someone pushes to develop by hand.
 name: Build QA
 
 on:

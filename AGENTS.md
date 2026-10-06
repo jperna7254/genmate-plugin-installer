@@ -4,7 +4,7 @@ What spans the five GenMate repos is in `~/src/GenMate/AGENTS.md`, which a sessi
 
 ## Build & test
 
-`./build.sh -t` builds and tests; `./build.sh -l` launches. Never `dotnet run`: a WPF app built in WSL launches only under Windows `dotnet.exe` (`build.sh` header).
+`./build.sh -t` builds and tests; `./build.sh -l` launches. Never `dotnet run` (`build.sh` header says why).
 
 ## Releasing: merging to `main` IS the release
 
@@ -18,4 +18,4 @@ Feature PRs target `main`; `develop` is stale (`build-qa.yml`). A merge publishe
 
 ## Maintaining this file
 
-Governed by `~/.claude/CLAUDE.md` → *Agent instruction files*. Code comments carry only what the code beside them cannot say: a reason, a non-local consequence, a deliberate removal, a load-bearing warning or an external constraint, never a restatement.
+Governed by `~/.claude/CLAUDE.md` → *Agent instruction files*. Code comments carry only what the code beside them cannot say: a reason, a non-local consequence, a deliberate removal, a load-bearing warning, an external constraint or an invariant the type cannot express, never a restatement; one whose rule a test pins says so in a clause. Shorten a comment rather than delete it, and when unsure, keep it.
