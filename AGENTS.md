@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this is
 
-GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is one of the five GenMate repositories; what spans them (vocabulary, the project board, the work and review flow) is in the GenMate workspace `AGENTS.md`, in the directory that holds the five checkouts.
+GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is one of the five GenMate repositories; what spans them (vocabulary, the project board, the work and review flow) is in the GenMate workspace `AGENTS.md` (`~/src/GenMate/AGENTS.md`, the parent of this repo's main checkout, not a repository).
 
 ## Build & Run
 
@@ -16,10 +16,10 @@ Build and launch with `./build.sh` — see the header comment and flag parsing i
 
 ## Releasing: merging to `main` IS the release
 
-There is no publish step and no release branch. Every push to `main` runs
-`.github/workflows/build-release-prod.yml`, which publishes a GitHub Release tagged `v<Version>` from
-the `.csproj` `Version` and attaches the exe. Feature PRs target `main` directly; `develop` is not the
-integration branch.
+There is no publish step and no release branch; `.github/workflows/build-release-prod.yml` runs on
+every push to `main`. Feature PRs target `main` directly. **`develop` is stale, not the integration
+branch**: it trails `main` and nothing has merged into it since March 2026, and `build-qa.yml` builds it
+only if someone pushes to it.
 
 **The trap: an unbumped `Version` publishes nothing, silently.** The workflow skips the publish when
 the tag `v<Version>` already exists, so the merge succeeds, the run goes green with only a notice
@@ -28,7 +28,7 @@ annotation, and users never see the change. So:
 - **A PR meant to ship bumps `Version`** to a number with no existing tag. A PR not meant to ship
   leaves it alone; its change goes out with the next bump.
 - **The merge is not done until the release is confirmed** to carry the new number:
-  `gh api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'`
+  `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'`
   lists `GenMate.PluginInstaller.exe`.
 
 ## Agent skills
