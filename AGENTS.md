@@ -1,35 +1,14 @@
 # AGENTS.md
 
-This file provides guidance to coding agents working in this repository.
+What spans the five GenMate repos is in `~/src/GenMate/AGENTS.md`, which a session in a treehouse worktree does not load on its own.
 
-## What this is
+## Build & test
 
-GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is one of the five GenMate repositories; what spans them (vocabulary, the project board, the work and review flow) is in the GenMate workspace `AGENTS.md` (`~/src/GenMate/AGENTS.md`, the parent of this repo's main checkout, not a repository).
-
-## Build & Run
-
-Build and launch with `./build.sh` — see the header comment and flag parsing in that script. Do not use `dotnet run`: the build runs under WSL but the app can only launch under the Windows .NET desktop runtime, which `build.sh -l` handles.
-
-## Architecture Notes
-
-- **No DI container** — services are instantiated directly with `new` in `MainWindow` for simplicity. If the app grows more complex, reevaluate and consider introducing a DI container.
+`./build.sh -t` builds and tests; `./build.sh -l` launches. Never `dotnet run` (`build.sh` header says why).
 
 ## Releasing: merging to `main` IS the release
 
-There is no publish step and no release branch; `.github/workflows/build-release-prod.yml` runs on
-every push to `main`. Feature PRs target `main` directly. **`develop` is stale, not the integration
-branch**: it trails `main` and nothing has merged into it since March 2026, and `build-qa.yml` builds it
-only if someone pushes to it.
-
-**The trap: an unbumped `Version` publishes nothing, silently.** The workflow skips the publish when
-the tag `v<Version>` already exists, so the merge succeeds, the run goes green with only a notice
-annotation, and users never see the change. So:
-
-- **A PR meant to ship bumps `Version`** to a number with no existing tag. A PR not meant to ship
-  leaves it alone; its change goes out with the next bump.
-- **The merge is not done until the release is confirmed** to carry the new number:
-  `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'`
-  lists `GenMate.PluginInstaller.exe`.
+Feature PRs target `main`; `develop` is stale (`build-qa.yml`). A merge publishes only when `Version` in the csproj has no tag yet, so a PR meant to ship bumps it, and is not done until `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'` lists `GenMate.PluginInstaller.exe`.
 
 ## Agent skills
 
@@ -39,10 +18,4 @@ annotation, and users never see the change. So:
 
 ## Maintaining this file
 
-This section is the single owner of this repository's documentation policy. **Only what this repo's code cannot say goes here; anything that spans the GenMate repositories belongs in the workspace `AGENTS.md`**, so point at it rather than restating it.
-
-When you pin a rule with a test or state it in a code comment, delete the prose that said it. A block that names a test is a block whose job is done.
-
-**Write only what the code cannot say.** Before adding a block, ask whether an agent could learn it from the code it would naturally open. If it could, do not write it, and name the file, symbol, config key or test that answers it instead. If a rule binds at a call site, put it in a comment there or in a test that fails when it is broken, and not here. This applies to code comments too: a comment that restates the code beneath it, repeats a member's name, narrates the steps, or explains standard language semantics should not be written, while one carrying a reason, a non-local consequence, a deliberate removal, a warning that something which looks removable is load-bearing, an external constraint, or a unit or invariant the type cannot express should. A comment whose rule is already pinned by a test says so in one clause and stops. Prefer shortening a comment to its load-bearing clause over deleting it, and when unsure whether a comment is protected, keep it. Doc comments that ship in a published package, and comments a tool reads, are out of scope. What belongs here is what has no point of change: something built and then deliberately removed, an accepted loss or a deliberate one-way migration, a rejected alternative and its reason, or a contract that is invisible in the repo where it gets violated. Never remove one of these, and write one when your change creates it. When unsure whether a block is one of those, keep it. Do not add a repository overview, directory tree, technology list, file inventory, command list, or service roster. They go stale silently and the tooling answers them accurately.
-
-Never state a fact in two places. If a change makes a documented fact stale, update its single owner; if the code now states it, delete the prose.
+Governed by `~/.claude/CLAUDE.md` → *Agent instruction files*. Code comments carry only what the code beside them cannot say: a reason, a non-local consequence, a deliberate removal, a load-bearing warning, an external constraint or an invariant the type cannot express, never a restatement; one whose rule a test pins says so in a clause. Shorten a comment rather than delete it, and when unsure, keep it.

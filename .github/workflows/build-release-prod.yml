@@ -30,6 +30,8 @@ jobs:
         $version = $csproj.Project.PropertyGroup.Version | Where-Object { $_ }
         echo "VERSION=$version" >> $env:GITHUB_OUTPUT
 
+    # An existing tag skips every step below with only a notice, so an unbumped merge is a green
+    # run that publishes nothing and is easy to mistake for a release.
     - name: Check if release exists
       id: check
       shell: bash
