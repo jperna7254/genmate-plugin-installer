@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this is
 
-GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is part of the larger GenMate ecosystem (see parent `GenMate/CLAUDE.md` for full architecture).
+GenMate.PluginInstaller is a desktop app that installs the GenMate plugin for AutoCAD 2024 and BricsCAD V24. It is one of the five GenMate repositories; what spans them (vocabulary, the project board, the work and review flow) is in the GenMate workspace `AGENTS.md` (`~/src/GenMate/AGENTS.md`, the parent of this repo's main checkout, not a repository).
 
 ## Build & Run
 
@@ -14,6 +14,23 @@ Build and launch with `./build.sh` — see the header comment and flag parsing i
 
 - **No DI container** — services are instantiated directly with `new` in `MainWindow` for simplicity. If the app grows more complex, reevaluate and consider introducing a DI container.
 
+## Releasing: merging to `main` IS the release
+
+There is no publish step and no release branch; `.github/workflows/build-release-prod.yml` runs on
+every push to `main`. Feature PRs target `main` directly. **`develop` is stale, not the integration
+branch**: it trails `main` and nothing has merged into it since March 2026, and `build-qa.yml` builds it
+only if someone pushes to it.
+
+**The trap: an unbumped `Version` publishes nothing, silently.** The workflow skips the publish when
+the tag `v<Version>` already exists, so the merge succeeds, the run goes green with only a notice
+annotation, and users never see the change. So:
+
+- **A PR meant to ship bumps `Version`** to a number with no existing tag. A PR not meant to ship
+  leaves it alone; its change goes out with the next bump.
+- **The merge is not done until the release is confirmed** to carry the new number:
+  `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'`
+  lists `GenMate.PluginInstaller.exe`.
+
 ## Agent skills
 
 - **Issue tracker** — `docs/agents/issue-tracker.md`
@@ -21,6 +38,8 @@ Build and launch with `./build.sh` — see the header comment and flag parsing i
 - **Domain docs** — `docs/agents/domain.md`
 
 ## Maintaining this file
+
+This section is the single owner of this repository's documentation policy. **Only what this repo's code cannot say goes here; anything that spans the GenMate repositories belongs in the workspace `AGENTS.md`**, so point at it rather than restating it.
 
 When you pin a rule with a test or state it in a code comment, delete the prose that said it. A block that names a test is a block whose job is done.
 
