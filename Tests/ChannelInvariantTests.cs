@@ -11,7 +11,7 @@ namespace GenMate.PluginInstaller.Tests;
 /// the document outside verification so that the pinned check, when a certificate finally allows
 /// one, is not already undermined by the shape of the document - today
 /// <see cref="AcceptUnsignedInstallerVerifier"/> accepts every download unconditionally, by the
-/// captain's ruling, so there is no verification here yet for the document to relax. They exist
+/// chief's ruling, so there is no verification here yet for the document to relax. They exist
 /// because the reversal is one line long - "let channel.json turn verification off for QA".
 /// </summary>
 public class ChannelInvariantTests

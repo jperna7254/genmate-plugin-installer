@@ -5,7 +5,7 @@ namespace GenMate.PluginInstaller.Core.SelfUpdate;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>This is a deliberate ruling by the captain, not an oversight, and not a stub someone forgot.</b>
+/// <b>This is a deliberate ruling by the chief, not an oversight, and not a stub someone forgot.</b>
 /// There is no code-signing certificate for this product and no date for one; obtaining an
 /// organization certificate is an external process measured in weeks. Shipping self-update without
 /// verification was chosen knowing the risk, because <b>an installer that can update itself is how
