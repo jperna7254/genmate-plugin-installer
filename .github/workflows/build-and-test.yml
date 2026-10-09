@@ -1,5 +1,5 @@
-# The check a PR to main must pass before its merge, which may publish a release
-# (build-release-prod.yml). Builds the app too, since the tests reference only Core.
+# Runs on every PR to main, whose merge may publish a release (build-release-prod.yml).
+# Builds the app too, since the tests reference only Core.
 name: Build and Test
 
 on:
