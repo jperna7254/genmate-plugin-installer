@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- net10.0, not net10.0-windows: the self-update and channel code must be unit-testable on the
-       WSL build machine, and a project that pulls in Microsoft.WindowsDesktop.App cannot run there.
+  <!-- net10.0, not net10.0-windows: the self-update and channel code must be unit-testable on any
+       OS, and a project that pulls in Microsoft.WindowsDesktop.App runs only on Windows.
        Anything needing WPF or the registry stays in the app project; ProgramData paths are passed in. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
