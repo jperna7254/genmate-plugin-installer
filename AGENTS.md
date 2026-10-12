@@ -1,10 +1,10 @@
 # AGENTS.md
 
-What spans the five GenMate repos is in `~/src/GenMate/AGENTS.md`, which a session in a treehouse worktree does not load on its own.
+What spans the five GenMate repos is in `D:\src\GenMate\AGENTS.md`, which a session in a treehouse worktree does not load on its own.
 
 ## Build & test
 
-`./build.sh -t` builds and tests; `./build.sh -l` launches. Never `dotnet run` (`build.sh` header says why).
+`./build.ps1 -Test` builds and tests; `./build.ps1 -Launch` launches. Never `dotnet run` (`build.ps1` header says why).
 
 ## Releasing: merging to `main` IS the release
 
