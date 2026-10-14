@@ -1,0 +1,23 @@
+integration_branch = "main"
+hand_test = true
+supporting = []
+
+# The hand test builds the ticket's worktree and launches it as the current user (build.ps1 says why).
+[[servers]]
+name = "installer"
+command = ["pwsh", "-NoProfile", "-File", "build.ps1", "-Launch"]
+folder = "."
+ports = []
+ready = { log = "Launching " }
+forbidden = []
+
+[[checks]]
+name = "Release"
+command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1"]
+
+[[after_merge]]
+command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1", "-Published"]
+
+[release_version]
+file = "GenMate.PluginInstaller.csproj"
+pattern = '<Version>([^<]+)</Version>'
