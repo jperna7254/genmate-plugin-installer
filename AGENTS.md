@@ -1,6 +1,6 @@
 # AGENTS.md
 
-What spans the five GenMate repos is in `D:\src\GenMate\AGENTS.md`, which a session in a treehouse worktree does not load on its own.
+GenMate's cross-line rules are in the genmate-factory repo's `AGENTS.md` (`D:\src\GenMate\AGENTS.md`), which a session in a treehouse worktree does not load on its own.
 
 ## Build & test
 
@@ -8,7 +8,7 @@ What spans the five GenMate repos is in `D:\src\GenMate\AGENTS.md`, which a sess
 
 ## Releasing: merging to `main` IS the release
 
-Feature PRs target `main`; `develop` is stale (`build-qa.yml`). A merge publishes only when `Version` in the csproj has no tag yet, so a PR meant to ship bumps it, and is not done until `gh-axi api repos/jperna7254/genmate-plugin-installer/releases/tags/v<Version> --jq '.assets[].name'` lists `GenMate.PluginInstaller.exe`.
+Feature PRs target `main`; `develop` is stale (`build-qa.yml`).
 
 ## Agent skills
 

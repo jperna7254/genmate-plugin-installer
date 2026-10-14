@@ -20,7 +20,7 @@ namespace GenMate.PluginInstaller.Core.Channel;
 /// </list>
 /// <para>
 /// <b>None of the three is implemented today.</b> There is no code-signing certificate for this
-/// product, and the captain ruled that self-update ships without verification rather than waiting
+/// product, and the chief ruled that self-update ships without verification rather than waiting
 /// for one; <see cref="Core.SelfUpdate.AcceptUnsignedInstallerVerifier"/> accepts every downloaded
 /// installer unconditionally by that ruling, and carries what its replacement must prove. So the
 /// three above are the terms this document is trusted <i>under</i> - the contract the pinned
