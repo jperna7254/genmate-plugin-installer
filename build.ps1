@@ -44,6 +44,7 @@ if ($Test) {
 
 if ($Launch) {
   $dll = Join-Path $PSScriptRoot "bin\$Configuration\net10.0-windows\GenMate.PluginInstaller.dll"
+  # line.toml's installer server is ready on this line's "Launching " prefix.
   Write-Host "Launching $dll..."
   Invoke-Dotnet @($dll)
 }

@@ -24,11 +24,11 @@ function Fail([string]$why) { Write-Output $why; exit 1 }
 
 function Read-Version([string]$rev) {
   $text = (& git show "${rev}:$csproj" 2>$null) -join "`n"
-  if ($LASTEXITCODE -ne 0) { Fail "Cannot read $csproj at $rev." }
-  if ($text -notmatch '<Version>([^<]+)</Version>') { Fail "$csproj at $rev has no <Version>." }
+  if ($LASTEXITCODE -ne 0) { Fail "Cannot read $csproj at $rev" }
+  if ($text -notmatch '<Version>([^<]+)</Version>') { Fail "$csproj at $rev has no <Version>" }
   $v = $Matches[1].Trim()
   $parsed = $null
-  if (-not [System.Version]::TryParse($v, [ref]$parsed)) { Fail "Version '$v' in $csproj at $rev is not a version number." }
+  if (-not [System.Version]::TryParse($v, [ref]$parsed)) { Fail "Version '$v' in $csproj at $rev is not a version number" }
   [pscustomobject]@{ Text = $v; Value = $parsed }
 }
 
@@ -49,7 +49,7 @@ function Get-ErrorText($response) {
 }
 
 $url = & git remote get-url origin 2>$null
-if ($LASTEXITCODE -ne 0 -or $url -notmatch 'github\.com[:/]([^/]+)/(.+?)(\.git)?/?$') { Fail "Cannot read the GitHub repo from origin's URL '$url'." }
+if ($LASTEXITCODE -ne 0 -or $url -notmatch 'github\.com[:/]([^/]+)/(.+?)(\.git)?/?$') { Fail "Cannot read the GitHub repo from origin's URL '$url'" }
 $repo = "$($Matches[1])/$($Matches[2])"
 
 if ($Published) {
@@ -58,10 +58,10 @@ if ($Published) {
   $deadline = (Get-Date).AddSeconds($timeoutSeconds)
   while ($true) {
     $release = Invoke-GitHub @("repos/$repo/releases/tags/$tag", "--jq", ".assets[].name")
-    if ($release.Ok -and ($release.Output -split "`n") -contains $asset) { Pass "Release $tag lists $asset." }
-    if (-not $release.Ok -and -not $release.NotFound) { Fail "Cannot read release ${tag}: $(Get-ErrorText $release)." }
+    if ($release.Ok -and ($release.Output -split "`n") -contains $asset) { Pass "Release $tag lists $asset" }
+    if (-not $release.Ok -and -not $release.NotFound) { Fail "Cannot read release ${tag}: $(Get-ErrorText $release)" }
     if ((Get-Date) -ge $deadline) {
-      Fail "Release $tag does not list $asset after $timeoutSeconds s; the release workflow may still be running, and retrying clean-up re-runs this check."
+      Fail "Release $tag does not list $asset after $timeoutSeconds s; the release workflow may still be running, and retrying clean-up re-runs this check"
     }
     Start-Sleep -Seconds $pollSeconds
   }
@@ -70,9 +70,9 @@ if ($Published) {
 $old = Read-Version "origin/main"
 $new = Read-Version "HEAD"
 if ($new.Text -eq $old.Text) { Pass "Version $($new.Text) unchanged: merging publishes nothing" }
-if ($new.Value -le $old.Value) { Fail "Version $($new.Text) is not greater than main's $($old.Text)." }
+if ($new.Value -le $old.Value) { Fail "Version $($new.Text) is not greater than main's $($old.Text)" }
 $tag = "v$($new.Text)"
 $ref = Invoke-GitHub @("repos/$repo/git/ref/tags/$tag")
-if ($ref.Ok) { Fail "Tag $tag already exists: build-release-prod.yml would skip the publish. Bump past it." }
-if (-not $ref.NotFound) { Fail "Cannot check tag ${tag}: $(Get-ErrorText $ref)." }
+if ($ref.Ok) { Fail "Tag $tag already exists: build-release-prod.yml would skip the publish; bump past it" }
+if (-not $ref.NotFound) { Fail "Cannot check tag ${tag}: $(Get-ErrorText $ref)" }
 Pass "Version $($old.Text) -> $($new.Text): merging publishes $tag"
