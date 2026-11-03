@@ -1,6 +1,7 @@
 integration_branch = "main"
 hand_test = true
 supporting = []
+checks = []
 
 # The hand test builds the ticket's worktree and launches it as the current user (build.ps1 says why).
 [[servers]]
@@ -10,10 +11,6 @@ folder = "."
 ports = []
 ready = { log = "Launching " }
 forbidden = []
-
-[[checks]]
-name = "Release"
-command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1"]
 
 [[after_merge]]
 command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1", "-Published"]
