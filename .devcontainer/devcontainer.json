@@ -1,0 +1,15 @@
+// The installer line's ticket containers: the .NET 10 SDK its CI sets up (10.0.x), on the Debian-based Dev Containers
+// .NET image, with pwsh for build.ps1 and scripts/check-release.ps1. The app targets net10.0-windows with WPF, so
+// EnableWindowsTargeting lets it restore and build on Linux; its window opens on Windows alone. The rest comes from
+// the foundation's Dev Container Feature.
+{
+  "name": "genmate-plugin-installer",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:10.0",
+  "features": {
+    "ghcr.io/devcontainers/features/powershell:1": {}
+  },
+  "containerEnv": {
+    "EnableWindowsTargeting": "true"
+  },
+  "remoteUser": "vscode"
+}
