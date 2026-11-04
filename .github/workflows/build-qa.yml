@@ -1,3 +1,5 @@
+# develop is stale, not the integration branch: it trails main and takes no merges, so this runs
+# only if someone pushes to develop by hand.
 name: Build QA
 
 on:
@@ -9,13 +11,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET 10
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10.0.x'
         include-prerelease: true
+
+    - name: Test
+      run: dotnet test Tests/GenMate.PluginInstaller.Tests.csproj -c Release
 
     - name: Restore packages
       run: dotnet restore GenMate.PluginInstaller.csproj
@@ -24,7 +29,7 @@ jobs:
       run: dotnet publish GenMate.PluginInstaller.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: GenMate.PluginInstaller-qa
         path: bin/Release/net10.0-windows/win-x64/publish/GenMate.PluginInstaller.exe

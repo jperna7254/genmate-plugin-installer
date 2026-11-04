@@ -1,6 +1,13 @@
 using System.ComponentModel;
+using System.IO;
+using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using GenMate.PluginInstaller.Core.Channel;
+using GenMate.PluginInstaller.Core.Diagnostics;
+using GenMate.PluginInstaller.Core.Hosts;
+using GenMate.PluginInstaller.Core.SelfUpdate;
 using GenMate.PluginInstaller.Models;
 using GenMate.PluginInstaller.Services;
 
@@ -8,47 +15,88 @@ namespace GenMate.PluginInstaller;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private readonly IPluginDetectionService _detectionService;
+    // Every request made through this client is already bounded by its own linked
+    // CancellationTokenSource - ChannelDocumentReader's 10s fetch, the update check's 15s, the
+    // download's 20 minutes. Those budgets were each chosen for what the user is waiting on, and an
+    // infinite client timeout leaves them the single visible answer to how long anything may take,
+    // rather than sharing that answer with a default whose interaction with a streamed body read is
+    // subtle enough that two readings of it have disagreed. Anything added here must bring its own
+    // token; a request without one would wait forever.
+    private static readonly HttpClient UpdateHttpClient = new()
+    {
+        Timeout = Timeout.InfiniteTimeSpan,
+        DefaultRequestHeaders =
+        {
+            { "User-Agent", "GenMate-PluginInstaller" },
+            { "Accept", "application/vnd.github+json" }
+        }
+    };
+
+    private readonly IReadOnlyList<PluginHost> _pluginHosts;
+    private readonly IHostMachine _hostMachine;
+    private readonly PluginHostService _hostService;
     private readonly IVersionService _versionService;
     private readonly IPluginInstallService _installService;
-    private readonly IAutoCADDetectionService _autoCADDetectionService;
+    private readonly ChannelDocumentReader _channelReader;
+    private readonly SelfUpdateService _selfUpdateService;
 
-    private string? _installedVersion;
-    private bool _isPluginInstalled;
-    private List<PluginVersionInfo> _availableVersions = [];
+    private ChannelDocument _channel = ChannelDocument.Fallback;
+
+    private List<HostViewModel> _hosts = [];
+    private HostViewModel? _selectedHost;
+    private bool _isLoaded;
     private bool _isBusy;
     private int _downloadProgress;
     private string? _statusMessage;
 
+    // Composed by hand with `new`, deliberately: a DI container is not worth it at this size.
+    // Reconsider one if the app grows.
     public MainWindow()
     {
-        _detectionService = new PluginDetectionService();
+        var log = FileUpdateLog.Default();
+        var programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        _pluginHosts = [PluginHost.AutoCad(programData), PluginHost.BricsCad(programData)];
+        _hostMachine = new WindowsHostMachine();
+        _hostService = new PluginHostService(
+            _pluginHosts,
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GenMate"),
+            _hostMachine);
         _versionService = new GitHubReleaseService();
-        _installService = new PluginInstallService();
-        _autoCADDetectionService = new AutoCADDetectionService();
+        _installService = new PluginInstallService(_hostService);
+        _channelReader = new ChannelDocumentReader(UpdateHttpClient, log);
+        _selfUpdateService = new SelfUpdateService(
+            Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0),
+            new GitHubInstallerReleaseSource(UpdateHttpClient),
+            // The one line to change when a code-signing certificate exists; the class it names
+            // carries what the replacement must prove and why there is nothing here yet.
+            new AcceptUnsignedInstallerVerifier(),
+            new LocalUpdateEnvironment(),
+            log);
 
         InitializeComponent();
         DataContext = this;
-        Loaded += async (_, _) => await LoadDataAsync();
+        Loaded += async (_, _) => await StartAsync();
     }
 
-    public string? InstalledVersion
+    // Three parts rather than Version's four, so the label reads as the release tag on GitHub.
+    public string RunningVersion { get; } =
+        (Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0)).ToString(3);
+
+    public List<HostViewModel> Hosts
     {
-        get => _installedVersion;
-        set { _installedVersion = value; OnPropertyChanged(); }
+        get => _hosts;
+        set { _hosts = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasNoHosts)); }
     }
 
-    public bool IsPluginInstalled
+    public HostViewModel? SelectedHost
     {
-        get => _isPluginInstalled;
-        set { _isPluginInstalled = value; OnPropertyChanged(); }
+        get => _selectedHost;
+        set { _selectedHost = value; OnPropertyChanged(); }
     }
 
-    public List<PluginVersionInfo> AvailableVersions
-    {
-        get => _availableVersions;
-        set { _availableVersions = value; OnPropertyChanged(); }
-    }
+    // Not shown before the first load, so the window does not claim no CAD application is installed
+    // while it is still checking for updates.
+    public bool HasNoHosts => _isLoaded && Hosts.Count == 0;
 
     public bool IsBusy
     {
@@ -70,46 +118,100 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         set { _statusMessage = value; OnPropertyChanged(); }
     }
 
+    // The update runs before the version list is fetched, so that everything most likely to need
+    // fixing in the field - which releases are offered, how a bundle is verified, what a CAD
+    // install looks like - sits behind the one thing that can replace itself.
+    private async Task StartAsync()
+    {
+        if (await TryUpdateSelfAsync())
+            return;
+
+        await LoadDataAsync();
+    }
+
+    private async Task<bool> TryUpdateSelfAsync()
+    {
+        IsBusy = true;
+        DownloadProgress = 0;
+        StatusMessage = "Checking for updates...";
+
+        try
+        {
+            _selfUpdateService.CleanUpPreviousUpdate();
+            _channel = await _channelReader.ReadAsync();
+
+            var progress = new Progress<int>(p =>
+            {
+                DownloadProgress = p;
+                StatusMessage = "Updating GenMate Installer...";
+            });
+
+            if (await _selfUpdateService.TryUpdateAsync(_channel.Installer, progress) !=
+                SelfUpdateOutcome.RelaunchStarted)
+            {
+                return false;
+            }
+
+            StatusMessage = "Restarting...";
+            Application.Current.Shutdown();
+            return true;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     private async Task LoadDataAsync()
     {
-        InstalledVersion = _detectionService.GetInstalledVersion();
-        IsPluginInstalled = InstalledVersion is not null;
+        var statuses = _pluginHosts
+            .Select(_hostService.GetStatus)
+            .Where(status => status.IsOffered)
+            .ToList();
 
-        var versions = await _versionService.GetAvailableVersionsAsync();
-        foreach (var version in versions)
-            version.IsInstalled = version.Version == InstalledVersion;
+        var versions = await _versionService.GetAvailableVersionsAsync(_channel.Plugin);
 
-        AvailableVersions = versions;
+        var selectedHostId = SelectedHost?.Host.Id;
+        _isLoaded = true;
+        Hosts = statuses
+            .Select(status => new HostViewModel(
+                status,
+                _channel.Plugin.Hosts.TryGetValue(status.Host.Id, out var channelHost)
+                    ? channelHost.DisplayName
+                    : status.Host.ApplicationName,
+                versions.GetValueOrDefault(status.Host.Id)))
+            .ToList();
+        SelectedHost = Hosts.FirstOrDefault(h => h.Host.Id == selectedHostId) ?? Hosts.FirstOrDefault();
     }
 
     private async void Install_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: PluginVersionInfo version })
+        if (sender is not FrameworkElement { DataContext: PluginVersionInfo version, Tag: HostViewModel host })
             return;
 
         if (version.DownloadUrl is null)
         {
             MessageBox.Show(
-                "No download available for this version.",
+                $"v{version.Version} has no package for {host.DisplayName}.",
                 "Install Plugin",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
         }
 
-        if (_autoCADDetectionService.IsAutoCADRunning())
+        if (_hostMachine.IsApplicationRunning(host.Host))
         {
             MessageBox.Show(
-                "Please close AutoCAD before installing the plugin.",
-                "AutoCAD Is Running",
+                $"Please close {host.DisplayName} before installing the plugin.",
+                $"{host.DisplayName} Is Running",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
         }
 
-        var action = InstalledVersion is not null
-            ? $"replace v{InstalledVersion} with v{version.Version}"
-            : $"install v{version.Version}";
+        var action = host.InstalledVersion is not null
+            ? $"replace v{host.InstalledVersion} with v{version.Version} for {host.DisplayName}"
+            : $"install v{version.Version} for {host.DisplayName}";
 
         var result = MessageBox.Show(
             $"Are you sure you want to {action}?",
@@ -132,7 +234,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 StatusMessage = $"Downloading... {p}%";
             });
 
-            await _installService.InstallAsync(version.DownloadUrl, progress);
+            await _installService.InstallAsync(host.Host, version.DownloadUrl, progress);
 
             StatusMessage = "Installation complete!";
             await LoadDataAsync();
@@ -154,18 +256,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void Uninstall_Click(object sender, RoutedEventArgs e)
     {
-        if (_autoCADDetectionService.IsAutoCADRunning())
+        if (sender is not FrameworkElement { DataContext: HostViewModel host })
+            return;
+
+        if (_hostMachine.IsApplicationRunning(host.Host))
         {
             MessageBox.Show(
-                "Please close AutoCAD before uninstalling the plugin.",
-                "AutoCAD Is Running",
+                $"Please close {host.DisplayName} before uninstalling the plugin.",
+                $"{host.DisplayName} Is Running",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
         }
 
         var result = MessageBox.Show(
-            $"Are you sure you want to uninstall v{InstalledVersion}?",
+            $"Are you sure you want to uninstall v{host.InstalledVersion} from {host.DisplayName}?",
             "Confirm Uninstall",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
@@ -179,7 +284,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         try
         {
-            await _installService.UninstallAsync();
+            await _installService.UninstallAsync(host.Host);
 
             StatusMessage = "Uninstall complete!";
             await LoadDataAsync();

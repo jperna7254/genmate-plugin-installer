@@ -24,9 +24,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,24">
             <Path Data="M35.86,24.99h14.76l-4.32,21.75c-5.33,3.82-12.46,5.98-20.45,5.98C10.23,52.71,0,43.56,0,30.17,0,12.46,13.18,0,32.4,0c10.58,0,18.15,3.38,22.9,9.87l-12.17,9.43c-3.24-4.18-6.77-5.54-11.52-5.54-8.86,0-14.47,6.34-14.47,15.34,0,5.9,4.1,9.86,11.09,9.86,1.66,0,3.31-.22,4.97-.72l2.66-13.25Z"
                   Fill="Black"
@@ -41,129 +41,175 @@
                        Margin="0,12,0,4" />
         </StackPanel>
 
-        <!-- Installed Version Section -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,20">
-            <TextBlock Text="INSTALLED VERSION"
-                       FontSize="11"
-                       FontWeight="SemiBold"
-                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
-                       Margin="0,0,0,8" />
+        <TextBlock Grid.Row="1"
+                   Text="GenMate needs AutoCAD 2024 or BricsCAD V24, and neither was found on this computer."
+                   Visibility="{Binding HasNoHosts, Converter={StaticResource BoolToVisibility}}"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   FontSize="14"
+                   Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}" />
 
-            <materialDesign:Card Style="{StaticResource DenseCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+        <TabControl Grid.Row="2"
+                    ItemsSource="{Binding Hosts}"
+                    SelectedItem="{Binding SelectedHost, Mode=TwoWay}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,16,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                    <materialDesign:PackIcon Grid.Column="0"
-                                             Kind="{Binding IsPluginInstalled, Converter={StaticResource BoolToIconKind}}"
-                                             Width="24" Height="24"
-                                             VerticalAlignment="Center"
-                                             Foreground="{Binding IsPluginInstalled, Converter={StaticResource InstalledStatusBrush}}" />
+                        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                            <TextBlock Text="INSTALLED VERSION"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                       Margin="0,0,0,8" />
 
-                    <!-- Installed state -->
-                    <TextBlock Grid.Column="1"
-                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
-                               VerticalAlignment="Center"
-                               Margin="12,0,0,0"
-                               FontSize="15"
-                               FontWeight="Medium">
-                        <Run Text="v" /><Run Text="{Binding InstalledVersion, Mode=OneWay}" />
-                    </TextBlock>
-
-                    <!-- Not installed state -->
-                    <TextBlock Grid.Column="1"
-                               Text="Not Installed"
-                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource InverseBoolToVisibility}}"
-                               VerticalAlignment="Center"
-                               Margin="12,0,0,0"
-                               FontSize="15"
-                               FontWeight="Medium"
-                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}" />
-
-                    <Button Grid.Column="2"
-                            Content="Uninstall"
-                            Style="{StaticResource ErrorButton}"
-                            Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
-                            IsEnabled="{Binding IsNotBusy}"
-                            Click="Uninstall_Click"
-                            VerticalAlignment="Center" />
-                </Grid>
-            </materialDesign:Card>
-        </StackPanel>
-
-        <!-- Available Versions Section -->
-        <DockPanel Grid.Row="2">
-            <TextBlock DockPanel.Dock="Top"
-                       Text="AVAILABLE VERSIONS"
-                       FontSize="11"
-                       FontWeight="SemiBold"
-                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
-                       Margin="0,0,0,8" />
-
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding AvailableVersions}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <materialDesign:Card Style="{StaticResource DenseCard}" Margin="0,0,0,8">
+                            <materialDesign:Card Style="{StaticResource DenseCard}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Version number -->
-                                    <TextBlock Grid.Column="0"
-                                               FontSize="14" FontWeight="Medium"
-                                               VerticalAlignment="Center">
-                                        <Run Text="v" /><Run Text="{Binding Version, Mode=OneWay}" />
+                                    <materialDesign:PackIcon Grid.Column="0"
+                                                             Kind="{Binding IsPluginInstalled, Converter={StaticResource BoolToIconKind}}"
+                                                             Width="24" Height="24"
+                                                             VerticalAlignment="Center"
+                                                             Foreground="{Binding IsPluginInstalled, Converter={StaticResource InstalledStatusBrush}}" />
+
+                                    <TextBlock Grid.Column="1"
+                                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
+                                               VerticalAlignment="Center"
+                                               Margin="12,0,0,0"
+                                               FontSize="15"
+                                               FontWeight="Medium">
+                                        <Run Text="v" /><Run Text="{Binding InstalledVersion, Mode=OneWay}" />
                                     </TextBlock>
 
-                                    <!-- Release date -->
                                     <TextBlock Grid.Column="1"
-                                               Text="{Binding ReleaseDate, StringFormat='{}{0:yyyy-MM-dd}'}"
-                                               FontSize="12"
-                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                               Text="Not Installed"
+                                               Visibility="{Binding IsPluginInstalled, Converter={StaticResource InverseBoolToVisibility}}"
                                                VerticalAlignment="Center"
-                                               Margin="0,0,12,0" />
+                                               Margin="12,0,0,0"
+                                               FontSize="15"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}" />
 
-                                    <!-- Install button (when not installed) -->
                                     <Button Grid.Column="2"
-                                            Content="Install"
-                                            Style="{StaticResource SuccessButton}"
-                                            Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVisibility}}"
+                                            Content="Uninstall"
+                                            Style="{StaticResource ErrorButton}"
+                                            Visibility="{Binding IsPluginInstalled, Converter={StaticResource BoolToVisibility}}"
                                             IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            Click="Install_Click"
+                                            Click="Uninstall_Click"
                                             VerticalAlignment="Center" />
-
-                                    <!-- Installed label (when installed) -->
-                                    <StackPanel Grid.Column="2"
-                                                Orientation="Horizontal"
-                                                Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"
-                                                VerticalAlignment="Center">
-                                        <materialDesign:PackIcon Kind="CheckCircle"
-                                                                 Width="16" Height="16"
-                                                                 Foreground="{StaticResource SuccessBrush}"
-                                                                 VerticalAlignment="Center" />
-                                        <TextBlock Text="Installed"
-                                                   FontSize="12"
-                                                   FontWeight="Medium"
-                                                   Foreground="{StaticResource SuccessBrush}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="4,0,0,0" />
-                                    </StackPanel>
                                 </Grid>
                             </materialDesign:Card>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </DockPanel>
+                        </StackPanel>
 
-        <!-- Status / Progress Panel -->
+                        <DockPanel Grid.Row="1">
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="AVAILABLE VERSIONS"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                       Margin="0,0,0,8" />
+
+                            <TextBlock DockPanel.Dock="Top"
+                                       Visibility="{Binding IsNotPublished, Converter={StaticResource BoolToVisibility}}"
+                                       TextWrapping="Wrap"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}">
+                                <Run Text="GenMate for" />
+                                <Run Text="{Binding DisplayName, Mode=OneWay}" />
+                                <Run Text="is not published yet." />
+                            </TextBlock>
+
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="No releases are available right now."
+                                       Visibility="{Binding HasNoVersions, Converter={StaticResource BoolToVisibility}}"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}" />
+
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding AvailableVersions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <materialDesign:Card Style="{StaticResource DenseCard}" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Column="0"
+                                                               FontSize="14" FontWeight="Medium"
+                                                               VerticalAlignment="Center">
+                                                        <Run Text="v" /><Run Text="{Binding Version, Mode=OneWay}" />
+                                                    </TextBlock>
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding ReleaseDate, StringFormat='{}{0:yyyy-MM-dd}'}"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,12,0" />
+
+                                                    <!-- Tag carries the host: the version row's own DataContext does not know it. -->
+                                                    <Button Grid.Column="2"
+                                                            Content="Install"
+                                                            Style="{StaticResource SuccessButton}"
+                                                            Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}"
+                                                            Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Click="Install_Click"
+                                                            VerticalAlignment="Center" />
+
+                                                    <TextBlock Grid.Column="2"
+                                                               Visibility="{Binding HasNoPackage, Converter={StaticResource BoolToVisibility}}"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
+                                                               VerticalAlignment="Center">
+                                                        <Run Text="No package for" />
+                                                        <Run Text="{Binding DataContext.DisplayName, Mode=OneWay, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                    </TextBlock>
+
+                                                    <StackPanel Grid.Column="2"
+                                                                Orientation="Horizontal"
+                                                                Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"
+                                                                VerticalAlignment="Center">
+                                                        <materialDesign:PackIcon Kind="CheckCircle"
+                                                                                 Width="16" Height="16"
+                                                                                 Foreground="{StaticResource SuccessBrush}"
+                                                                                 VerticalAlignment="Center" />
+                                                        <TextBlock Text="Installed"
+                                                                   FontSize="12"
+                                                                   FontWeight="Medium"
+                                                                   Foreground="{StaticResource SuccessBrush}"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="4,0,0,0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </materialDesign:Card>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+
         <StackPanel Grid.Row="3" Margin="0,12,0,0"
                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
             <ProgressBar Value="{Binding DownloadProgress}"
@@ -175,5 +221,13 @@
                        Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}"
                        HorizontalAlignment="Center" />
         </StackPanel>
+
+        <TextBlock Grid.Row="4"
+                   HorizontalAlignment="Center"
+                   Margin="0,12,0,0"
+                   FontSize="12"
+                   Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light.Secondary}">
+            <Run Text="v" /><Run Text="{Binding RunningVersion, Mode=OneWay}" />
+        </TextBlock>
     </Grid>
 </Window>

@@ -1,16 +1,12 @@
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
+using GenMate.PluginInstaller.Core.Hosts;
 
 namespace GenMate.PluginInstaller.Services;
 
 public class PluginInstallService : IPluginInstallService
 {
-    private const string BundlePath = @"C:\ProgramData\Autodesk\ApplicationPlugins\GenMate.bundle";
-    private const string ApplicationPluginsPath = @"C:\ProgramData\Autodesk\ApplicationPlugins";
-
-    private static readonly string LocalAppDataGenMate =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GenMate");
+    private readonly PluginHostService _hostService;
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -20,44 +16,37 @@ public class PluginInstallService : IPluginInstallService
         }
     };
 
-    public async Task InstallAsync(string downloadUrl, IProgress<int> progress, CancellationToken ct = default)
+    public PluginInstallService(PluginHostService hostService)
+    {
+        _hostService = hostService;
+    }
+
+    public async Task InstallAsync(PluginHost host, string downloadUrl, IProgress<int> progress, CancellationToken ct = default)
     {
         string? tempFile = null;
         try
         {
-            // Download zip to temp file with progress
             tempFile = Path.GetTempFileName();
             using var response = await HttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1;
-            await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-            await using var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-
-            var buffer = new byte[8192];
-            long bytesRead = 0;
-            int read;
-            while ((read = await contentStream.ReadAsync(buffer, ct)) > 0)
+            await using (var contentStream = await response.Content.ReadAsStreamAsync(ct))
+            await using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
             {
-                await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
-                bytesRead += read;
-                if (totalBytes > 0)
-                    progress.Report((int)(bytesRead * 100 / totalBytes));
+                var buffer = new byte[8192];
+                long bytesRead = 0;
+                int read;
+                while ((read = await contentStream.ReadAsync(buffer, ct)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
+                    bytesRead += read;
+                    if (totalBytes > 0)
+                        progress.Report((int)(bytesRead * 100 / totalBytes));
+                }
             }
 
-            fileStream.Close();
-
-            // Remove existing bundle
-            if (Directory.Exists(BundlePath))
-                Directory.Delete(BundlePath, true);
-
-            // Clean local app data
-            if (Directory.Exists(LocalAppDataGenMate))
-                Directory.Delete(LocalAppDataGenMate, true);
-
-            // Extract zip (contains GenMate.bundle/ root folder)
-            Directory.CreateDirectory(ApplicationPluginsPath);
-            ZipFile.ExtractToDirectory(tempFile, ApplicationPluginsPath, true);
+            await Task.Run(() => _hostService.InstallFromZip(host, tempFile), ct);
         }
         finally
         {
@@ -66,15 +55,5 @@ public class PluginInstallService : IPluginInstallService
         }
     }
 
-    public Task UninstallAsync()
-    {
-        return Task.Run(() =>
-        {
-            if (Directory.Exists(BundlePath))
-                Directory.Delete(BundlePath, true);
-
-            if (Directory.Exists(LocalAppDataGenMate))
-                Directory.Delete(LocalAppDataGenMate, true);
-        });
-    }
+    public Task UninstallAsync(PluginHost host) => Task.Run(() => _hostService.Uninstall(host));
 }
