@@ -8,6 +8,8 @@ hand_test = false
 servers = []
 supporting = []
 checks = []
+# The check run of build-and-test.yml's lint job.
+lint = "lint"
 
 [[after_merge]]
 command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1", "-Published"]

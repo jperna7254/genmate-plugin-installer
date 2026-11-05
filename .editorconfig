@@ -1,0 +1,11 @@
+root = true
+
+# The CI lint job (build-and-test.yml) checks C# whitespace against this file.
+[*.cs]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+# The repo stores LF; naming it keeps the lint check's verdict the same on Windows and Linux.
+end_of_line = lf
+
+csharp_style_namespace_declarations = file_scoped:suggestion
