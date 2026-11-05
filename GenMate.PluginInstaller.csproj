@@ -9,7 +9,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Bump to ship: a merge to main publishes only a Version with no tag yet (the tag check in
          build-release-prod.yml). A PR not meant to ship leaves it alone. -->
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <AssemblyTitle>GenMate Plugin Installer</AssemblyTitle>
     <Product>GenMate Plugin Installer</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>

@@ -1,16 +1,15 @@
-integration_branch = "main"
-hand_test = true
+# Every ticket merges into develop; build-release-prod.yml releases a bumped <Version> only once develop is merged into
+# main.
+integration_branch = "develop"
+# The Windows VM serves the plugin line, so the installer's sessions run in a Linux container, where its WPF window
+# cannot open: a ticket is verified by its build and tests, and the installer is hand-tested on the laptop with
+# build.ps1 -Launch.
+hand_test = false
+servers = []
 supporting = []
 checks = []
-
-# The hand test builds the ticket's worktree and launches it as the current user (build.ps1 says why).
-[[servers]]
-name = "installer"
-command = ["pwsh", "-NoProfile", "-File", "build.ps1", "-Launch"]
-folder = "."
-ports = []
-ready = { log = "Launching " }
-forbidden = []
+# The check run of build-and-test.yml's lint job.
+lint = "lint"
 
 [[after_merge]]
 command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1", "-Published"]
@@ -18,3 +17,8 @@ command = ["pwsh", "-NoProfile", "-File", "scripts/check-release.ps1", "-Publish
 [release_version]
 file = "GenMate.PluginInstaller.csproj"
 pattern = '<Version>([^<]+)</Version>'
+
+# The line restores its packages from nuget.org alone: the repo has no NuGet.config, and its CI restores from no other
+# feed.
+[egress]
+allow = ["api.nuget.org"]
