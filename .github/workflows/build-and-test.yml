@@ -1,10 +1,12 @@
-# Runs on every PR to main, whose merge may publish a release (build-release-prod.yml).
-# Builds the app too, since the tests reference only Core.
+# Runs on every ticket's PR into develop and on each merge there, and on the release PR to main, whose merge may
+# publish a release (build-release-prod.yml). Builds the app too, since the tests reference only Core.
 name: Build and Test
 
 on:
   pull_request:
-    branches: [main]
+    branches: [develop, main]
+  push:
+    branches: [develop]
 
 permissions:
   contents: read
@@ -27,3 +29,20 @@ jobs:
 
     - name: Test
       run: dotnet test Tests/GenMate.PluginInstaller.Tests.csproj -c Release
+
+  # line.toml names this job's check run as the line's lint. Whitespace only, by the merger's choice: style and analyzer
+  # rules do not fail a PR. --folder needs no restore or build, so the WPF app is checked on Linux as a ticket
+  # container checks it; bin and obj are left out for a local run after a build.
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Check formatting
+      run: dotnet format whitespace --folder --verify-no-changes --exclude bin obj Core/bin Core/obj Tests/bin Tests/obj
