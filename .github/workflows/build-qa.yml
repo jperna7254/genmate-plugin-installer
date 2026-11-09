@@ -1,5 +1,4 @@
-# develop is stale, not the integration branch: it trails main and takes no merges, so this runs
-# only if someone pushes to develop by hand.
+# Publishes a QA build of each merge into develop, the line's integration branch.
 name: Build QA
 
 on:

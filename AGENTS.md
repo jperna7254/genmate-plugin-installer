@@ -8,7 +8,7 @@ GenMate's cross-line rules are in the genmate-factory repo's `AGENTS.md` (`D:\sr
 
 ## Releasing: merging to `main` IS the release
 
-Feature PRs target `main`; `develop` is stale (`build-qa.yml`).
+Ticket PRs target `develop`; merging `develop` into `main` releases (`build-release-prod.yml`).
 
 ## Agent skills
 
