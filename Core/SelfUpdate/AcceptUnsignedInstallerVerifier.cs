@@ -13,13 +13,17 @@ namespace GenMate.PluginInstaller.Core.SelfUpdate;
 /// future fix - this one included - requires every customer to manually re-download.
 /// </para>
 /// <para>
-/// What the replacement must do once a certificate exists, in place of returning true:
+/// What the replacement must do once a certificate exists, in place of returning true (obtaining the
+/// certificate, and the release order this replacement must follow, are in <c>docs/code-signing.md</c>):
 /// </para>
 /// <list type="number">
 ///   <item>read the downloaded file's Authenticode signature and reject if there is none;</item>
 ///   <item>require the pinned durable identity EKU <c>1.3.6.1.4.1.311.97.&lt;subscriber octets&gt;</c>,
 ///         held as a constant in this binary. This is the gate: it is what makes the check mean
-///         <i>GenMate</i> rather than <i>somebody who bought a certificate</i>;</item>
+///         <i>GenMate</i> rather than <i>somebody who bought a certificate</i>. Never the shared
+///         <c>1.3.6.1.4.1.311.97.1.0</c>, which every Artifact Signing certificate carries. Whether
+///         the EKU survives renewing the identity validation is unresolved; see the doc before
+///         shipping;</item>
 ///   <item>require the Code Signing EKU <c>1.3.6.1.5.5.7.3.3</c>;</item>
 ///   <item>require the chain to terminate at Microsoft Identity Verification Root CA 2020;</item>
 ///   <item>require an RFC-3161 timestamp countersignature and validate the signature as of that
