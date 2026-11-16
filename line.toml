@@ -22,3 +22,7 @@ pattern = '<Version>([^<]+)</Version>'
 # feed.
 [egress]
 allow = ["api.nuget.org"]
+
+# The line's CI and its merge gate run on this line's runner on the CI machine, one runner per line there.
+[runners]
+label = "genmate-installer"
