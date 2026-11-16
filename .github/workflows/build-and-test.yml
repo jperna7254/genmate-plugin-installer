@@ -16,6 +16,15 @@ jobs:
     runs-on: [self-hosted, genmate-installer]
 
     steps:
+    # Git for Windows on the CI machine checks files out with CRLF; the line's files and tests expect LF,
+    # as the laptop checks them out (core.autocrlf false). Files a CRLF checkout left are cleared once,
+    # as checking out a new commit rewrites only the files it changes.
+    - name: Check out with LF line endings
+      run: |
+        if ((git config --global core.autocrlf) -ne 'false') {
+          git config --global core.autocrlf false
+          Get-ChildItem -Force $env:GITHUB_WORKSPACE | Remove-Item -Recurse -Force
+        }
     - uses: actions/checkout@v6
 
     - name: Setup .NET 10
@@ -41,6 +50,15 @@ jobs:
     runs-on: [self-hosted, genmate-installer]
 
     steps:
+    # Git for Windows on the CI machine checks files out with CRLF; the line's files and tests expect LF,
+    # as the laptop checks them out (core.autocrlf false). Files a CRLF checkout left are cleared once,
+    # as checking out a new commit rewrites only the files it changes.
+    - name: Check out with LF line endings
+      run: |
+        if ((git config --global core.autocrlf) -ne 'false') {
+          git config --global core.autocrlf false
+          Get-ChildItem -Force $env:GITHUB_WORKSPACE | Remove-Item -Recurse -Force
+        }
     - uses: actions/checkout@v6
 
     - name: Setup .NET 10
