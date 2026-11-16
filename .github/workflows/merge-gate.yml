@@ -1,0 +1,69 @@
+# The "Merge gate" status, which the merge-gate ruleset on main and develop requires of every PR. It is the
+# foundation's: the job runs the release of the foundation installed on the CI machine, from the copy of its scripts
+# foundation-setup keeps there for the runners, so every line is judged alike and this file never changes with a
+# release. Onboarding and foundation-setup propose it; the merger merges it.
+#
+# On the line's own runners on the CI machine, never a hosted one. The job ends green whatever the verdict: the verdict
+# is the status it posts.
+name: Merge gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, reopened, synchronize, edited, ready_for_review, converted_to_draft]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_run:
+    workflows: ["Build and Test", "Build QA", "Build and Release"]
+    types: [completed]
+  # The Verifier's verdict, a check run the Floor's bot posts on the head: a new one re-runs the gate.
+  check_run:
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: write
+  statuses: write
+
+defaults:
+  run:
+    shell: powershell
+
+jobs:
+  gate:
+    name: Evaluate merge gate
+    # A comment on an issue is about no PR.
+    if: >-
+      ${{ (github.event_name != 'issue_comment' || github.event.issue.pull_request) &&
+      (github.event_name != 'check_run' || github.event.check_run.name == 'Verifier') }}
+    runs-on: [self-hosted, genmate-installer]
+    timeout-minutes: 20
+    steps:
+      # The CI machine holds no Python for a runner account: Python goes in the account's profile, unzipped from
+      # python.org's NuGet package of the version of Python's row of plugin/scripts/pins.py, as the foundation's
+      # toolchain action does.
+      - name: Python
+        run: |
+          $ProgressPreference = "SilentlyContinue"
+          $version, $sha256 = "3.15.2", "294f5ed7ab97148fcbb57b8c06ba428f6d282c2bbaa266dbe3137284497998f0"
+          $python = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "Programs\Python\Python315"
+          if (-not (Test-Path "$python\python.exe") -or
+              (& "$python\python.exe" -c "import platform; print(platform.python_version())") -ne $version) {
+            $package = Join-Path $env:RUNNER_TEMP "python-$version.zip"
+            Invoke-WebRequest -UseBasicParsing "https://www.nuget.org/api/v2/package/python/$version" -OutFile $package
+            if ((Get-FileHash $package -Algorithm SHA256).Hash -ne $sha256) { throw "$package is not the pinned" }
+            $unzipped = "$python.unzipped"
+            Remove-Item -Recurse -Force $unzipped, $python -ErrorAction SilentlyContinue
+            Expand-Archive $package $unzipped
+            Move-Item "$unzipped\tools" $python
+            Remove-Item -Recurse -Force $unzipped
+          }
+          [IO.File]::AppendAllText($env:GITHUB_PATH, "$python`n")
+      - name: Judge the PR
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -X utf8 "$env:ProgramData\projio-factory-gate\scripts\merge-gate"
+          exit $LASTEXITCODE
