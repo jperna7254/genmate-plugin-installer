@@ -13,13 +13,26 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    runs-on: [self-hosted, genmate-installer]
 
     steps:
+    # Git for Windows on the CI machine checks files out with CRLF; the line's files and tests expect LF,
+    # as the laptop checks them out (core.autocrlf false). Files a CRLF checkout left are cleared once,
+    # as checking out a new commit rewrites only the files it changes.
+    - name: Check out with LF line endings
+      run: |
+        if ((git config --global core.autocrlf) -ne 'false') {
+          git config --global core.autocrlf false
+          Get-ChildItem -Force $env:GITHUB_WORKSPACE | Remove-Item -Recurse -Force
+        }
     - uses: actions/checkout@v6
 
     - name: Setup .NET 10
       uses: actions/setup-dotnet@v5
+      # The runner's account cannot write Program Files, setup-dotnet's default; the runner's own
+      # tool cache keeps the SDK between runs.
+      env:
+        DOTNET_INSTALL_DIR: ${{ runner.tool_cache }}\dotnet
       with:
         dotnet-version: '10.0.x'
         include-prerelease: true
@@ -31,16 +44,29 @@ jobs:
       run: dotnet test Tests/GenMate.PluginInstaller.Tests.csproj -c Release
 
   # line.toml names this job's check run as the line's lint. Whitespace only, by the merger's choice: style and analyzer
-  # rules do not fail a PR. --folder needs no restore or build, so the WPF app is checked on Linux as a ticket
-  # container checks it; bin and obj are left out for a local run after a build.
+  # rules do not fail a PR. --folder needs no restore or build, so the WPF app is checked as a Linux ticket container
+  # checks it; bin and obj are left out for a local run after a build.
   lint:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, genmate-installer]
 
     steps:
+    # Git for Windows on the CI machine checks files out with CRLF; the line's files and tests expect LF,
+    # as the laptop checks them out (core.autocrlf false). Files a CRLF checkout left are cleared once,
+    # as checking out a new commit rewrites only the files it changes.
+    - name: Check out with LF line endings
+      run: |
+        if ((git config --global core.autocrlf) -ne 'false') {
+          git config --global core.autocrlf false
+          Get-ChildItem -Force $env:GITHUB_WORKSPACE | Remove-Item -Recurse -Force
+        }
     - uses: actions/checkout@v6
 
     - name: Setup .NET 10
       uses: actions/setup-dotnet@v5
+      # The runner's account cannot write Program Files, setup-dotnet's default; the runner's own
+      # tool cache keeps the SDK between runs.
+      env:
+        DOTNET_INSTALL_DIR: ${{ runner.tool_cache }}\dotnet
       with:
         dotnet-version: '10.0.x'
 
