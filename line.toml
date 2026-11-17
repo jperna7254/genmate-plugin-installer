@@ -8,6 +8,9 @@ hand_test = false
 servers = []
 supporting = []
 checks = []
+# A ticket PR merges into develop, which releases nothing, so no change is one-way whatever its diff: the generic test
+# grades the develop-into-main merge that releases.
+always_one_way = []
 # The check run of build-and-test.yml's lint job.
 lint = "lint"
 
