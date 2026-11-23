@@ -3,8 +3,11 @@
 # foundation-setup keeps there for the runners, so every line is judged alike and this file never changes with a
 # release. Onboarding and foundation-setup propose it; the merger merges it.
 #
-# On the line's own runners on the CI machine, never a hosted one. The job ends green whatever the verdict: the verdict
-# is the status it posts.
+# The gate runs no test of the PR's: the revert check job runs its new tests on the old code, once for each head
+# (opened, reopened, pushed), each in a process tree of its own, and posts its verdict as a check run the gate reads.
+#
+# On the line's own runners on the CI machine, never a hosted one. The jobs end green whatever the verdict: the verdict
+# is what they post.
 name: Merge gate
 
 on:
@@ -16,7 +19,8 @@ on:
   workflow_run:
     workflows: ["Build and Test", "Build QA", "Build and Release"]
     types: [completed]
-  # The Verifier's verdict, a check run the Floor's bot posts on the head: a new one re-runs the gate.
+  # The Verifier's verdict, a check run the Floor's bot posts on the head, and the revert check's: a new one
+  # re-runs the gate.
   check_run:
     types: [completed]
 
@@ -37,12 +41,13 @@ jobs:
     # A comment on an issue is about no PR.
     if: >-
       ${{ (github.event_name != 'issue_comment' || github.event.issue.pull_request) &&
-      (github.event_name != 'check_run' || github.event.check_run.name == 'Verifier') }}
+      (github.event_name != 'check_run' || github.event.check_run.name == 'Verifier' ||
+      github.event.check_run.name == 'Revert check') }}
     runs-on: [self-hosted, genmate-installer]
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
-      # The CI machine holds no Python for a runner account: Python goes in the account's profile, unzipped from
-      # python.org's NuGet package of the version of Python's row of plugin/scripts/pins.py, as the foundation's
+      # The CI machine holds no Python for a runner account: Python goes in the account's profile,
+      # from python.org's NuGet package of the version of Python's row of plugin/scripts/pins.py, as the foundation's
       # toolchain action does.
       - name: Python
         run: |
@@ -62,6 +67,62 @@ jobs:
           }
           [IO.File]::AppendAllText($env:GITHUB_PATH, "$python`n")
       - name: Judge the PR
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -X utf8 "$env:ProgramData\projio-factory-gate\scripts\merge-gate"
+          exit $LASTEXITCODE
+
+  revert:
+    name: Run revert check
+    # Once for each head of a PR: not on an edit or a comment, which run no test. After the gate job, so the gate's
+    # judging again below is the later of the two.
+    needs: gate
+    if: >-
+      ${{ always() && github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","reopened","synchronize"]'), github.event.action) }}
+    runs-on: [self-hosted, genmate-installer]
+    timeout-minutes: 30
+    steps:
+      # The CI machine holds no Python for a runner account: Python goes in the account's profile,
+      # from python.org's NuGet package of the version of Python's row of plugin/scripts/pins.py, as the foundation's
+      # toolchain action does.
+      - name: Python
+        run: |
+          $ProgressPreference = "SilentlyContinue"
+          $version, $sha256 = "3.15.2", "294f5ed7ab97148fcbb57b8c06ba428f6d282c2bbaa266dbe3137284497998f0"
+          $python = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "Programs\Python\Python315"
+          if (-not (Test-Path "$python\python.exe") -or
+              (& "$python\python.exe" -c "import platform; print(platform.python_version())") -ne $version) {
+            $package = Join-Path $env:RUNNER_TEMP "python-$version.zip"
+            Invoke-WebRequest -UseBasicParsing "https://www.nuget.org/api/v2/package/python/$version" -OutFile $package
+            if ((Get-FileHash $package -Algorithm SHA256).Hash -ne $sha256) { throw "$package is not the pinned" }
+            $unzipped = "$python.unzipped"
+            Remove-Item -Recurse -Force $unzipped, $python -ErrorAction SilentlyContinue
+            Expand-Archive $package $unzipped
+            Move-Item "$unzipped\tools" $python
+            Remove-Item -Recurse -Force $unzipped
+          }
+          [IO.File]::AppendAllText($env:GITHUB_PATH, "$python`n")
+      - name: Run the PR's new tests on the old code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -X utf8 "$env:ProgramData\projio-factory-gate\scripts\revert-check"
+          exit $LASTEXITCODE
+      # A run never posted or finished, as when a setup step failed or the job ran out of time, is failed here, so the
+      # gate never waits on the head for good.
+      - name: Finish a Revert check left unfinished
+        if: ${{ always() }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -X utf8 "$env:ProgramData\projio-factory-gate\scripts\revert-check" --unfinished
+          exit $LASTEXITCODE
+      # The check run is made by the workflow's token, whose events start no run of the gate: the job judges the PR
+      # again itself, whether or not the tests ran.
+      - name: Judge the PR again
+        if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
